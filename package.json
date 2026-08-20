@@ -1,0 +1,23 @@
+{
+  "name": "rangemaker",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Constructeur de matrices de ranges poker (13x13) avec export PDF imprimable.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^1.3.0"
+  }
+}
