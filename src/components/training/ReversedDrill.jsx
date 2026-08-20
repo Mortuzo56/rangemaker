@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import GridShell from './GridShell.jsx'
 import SelectCell from './SelectCell.jsx'
 import ReviewCell from './ReviewCell.jsx'
@@ -82,14 +82,52 @@ export default function ReversedDrill({ matrices }) {
     return s
   }, [matrix, round])
 
-  const toggle = (hand) => {
-    if (revealed) return
-    setPicked((prev) => {
-      const next = new Set(prev)
-      next.has(hand) ? next.delete(hand) : next.add(hand)
-      return next
-    })
-  }
+  // --- Glisser-sélectionner : le clic initial fixe le mode (sélectionner ou
+  // désélectionner) du glisser courant, chaque case survolée le suit. ---
+  const dragging = useRef(false)
+  const dragMode = useRef(true)
+  const touched = useRef(new Set())
+
+  useEffect(() => {
+    const stop = () => {
+      dragging.current = false
+      touched.current.clear()
+    }
+    window.addEventListener('mouseup', stop)
+    return () => window.removeEventListener('mouseup', stop)
+  }, [])
+
+  const startDrag = useCallback(
+    (hand) => {
+      if (revealed) return
+      setPicked((prev) => {
+        const willSelect = !prev.has(hand)
+        dragMode.current = willSelect
+        dragging.current = true
+        touched.current = new Set([hand])
+        const next = new Set(prev)
+        willSelect ? next.add(hand) : next.delete(hand)
+        return next
+      })
+    },
+    [revealed],
+  )
+
+  const enterDrag = useCallback(
+    (hand) => {
+      if (!dragging.current || revealed) return
+      if (touched.current.has(hand)) return
+      touched.current.add(hand)
+      setPicked((prev) => {
+        const mode = dragMode.current
+        if (mode === prev.has(hand)) return prev
+        const next = new Set(prev)
+        mode ? next.add(hand) : next.delete(hand)
+        return next
+      })
+    },
+    [revealed],
+  )
 
   const validate = () => {
     if (!matrix) return
@@ -152,7 +190,7 @@ export default function ReversedDrill({ matrices }) {
       </div>
 
       <p className="hint train-mode-hint">
-        Cliquez toutes les mains qui font partie de l'action annoncée, puis validez.
+        Cliquez (ou cliquez-glissez pour sélectionner plusieurs cases) toutes les mains qui font partie de l'action annoncée, puis validez.
       </p>
 
       {!round && selectedIds.size === 0 && (
@@ -181,7 +219,8 @@ export default function ReversedDrill({ matrices }) {
                   name={name}
                   selected={picked.has(name)}
                   color={targetAction.color}
-                  onToggle={toggle}
+                  onStart={startDrag}
+                  onEnter={enterDrag}
                 />
               )}
             />
