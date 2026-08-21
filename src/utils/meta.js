@@ -25,6 +25,14 @@ export const PLAYER_COUNTS = [
   { id: '3max', name: '3-max' },
 ]
 
+// Regroupement des positions par nombre de joueurs, utilisé par l'onglet
+// Consultation pour afficher les cases de position en 2 colonnes (3-max / HU)
+// plutôt que via une case "Joueurs" séparée.
+export const POSITION_GROUPS = [
+  { id: '3max', label: '3-max', positionIds: ['btn', 'sb', 'bb-vs-sb', 'bb-vs-btn'] },
+  { id: 'hu', label: 'HU', positionIds: ['sb-hu', 'bb-hu'] },
+]
+
 // Tapis effectifs pris en charge (en bb), du plus profond au plus court.
 export const STACK_OPTIONS = Array.from({ length: 14 }, (_, i) => 15 - i)
 

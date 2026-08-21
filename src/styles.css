@@ -171,13 +171,7 @@ body {
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
 }
-.consult-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-/* Groupe de cases cliquables (remplace les menus déroulants de filtre/tag) */
+/* Groupe de cases cliquables (remplace les menus déroulants de filtre) */
 .filter-group {
   display: flex;
   flex-direction: column;
@@ -194,6 +188,15 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+.filter-chips-vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+/* Cases de position réparties en 2 colonnes (3-max / HU) plutôt qu'une case "Joueurs" séparée. */
+.position-columns {
+  display: flex;
+  gap: 18px;
 }
 .filter-chip {
   border: 1px solid var(--border);

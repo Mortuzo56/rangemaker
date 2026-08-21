@@ -2,22 +2,21 @@ import React, { useEffect, useMemo, useState } from 'react'
 import ViewerCell from './ViewerCell.jsx'
 import { RANKS } from '../constants.js'
 import { handName } from '../utils/hands.js'
-import { POSITIONS, PLAYER_COUNTS, STACK_OPTIONS, getMeta } from '../utils/meta.js'
+import { POSITIONS, POSITION_GROUPS, STACK_OPTIONS, getMeta } from '../utils/meta.js'
 
 const ALL = 'all'
-
-const STACK_CHIP_OPTIONS = STACK_OPTIONS.map((n) => ({ id: String(n), name: `${n} bb` }))
 
 /**
  * Groupe de cases cliquables (au lieu d'un menu déroulant) : une case active
  * à la fois par groupe. Cliquer la case déjà active la désactive (retour à
- * "tous"/"aucun").
+ * "tous"). `vertical` empile les cases au lieu de les mettre en ligne (utile
+ * pour les colonnes de position 3-max / HU).
  */
-function ChipGroup({ label, options, value, onChange }) {
+function ChipGroup({ label, options, value, onChange, vertical }) {
   return (
     <div className="filter-group">
       <span className="filter-group-label">{label}</span>
-      <div className="filter-chips">
+      <div className={'filter-chips' + (vertical ? ' filter-chips-vertical' : '')}>
         {options.map((opt) => (
           <button
             key={opt.id}
@@ -56,38 +55,50 @@ function dominantEntries(entries, actions) {
 
 /**
  * Onglet "Consultation" : liste des ranges enregistrées, filtrable par cases
- * cliquables (position / nombre de joueurs / tapis effectif) + affichage en
- * lecture seule. On ne peut pas modifier la grille ; cliquer une case
- * l'agrandit et montre les pourcentages de chaque action.
+ * cliquables (position en 2 colonnes 3-max / HU, puis tapis effectif) +
+ * affichage en lecture seule. On ne peut pas modifier la grille ; cliquer une
+ * case l'agrandit et montre les pourcentages de chaque action.
  */
-export default function ConsultView({ matrices, onUpdateMeta }) {
+export default function ConsultView({ matrices }) {
   const [selectedId, setSelectedId] = useState(matrices[0]?.id || null)
   const [selectedCell, setSelectedCell] = useState(null)
   const [simplifiedView, setSimplifiedView] = useState(false)
 
   const [filterPosition, setFilterPosition] = useState(ALL)
-  const [filterPlayers, setFilterPlayers] = useState(ALL)
   const [filterStack, setFilterStack] = useState(ALL)
 
   // Chaque matrice enrichie de ses métadonnées effectives (explicites ou déduites du nom).
   const withMeta = useMemo(() => matrices.map((m) => ({ ...m, _meta: getMeta(m) })), [matrices])
+
+  // Position choisie (ou toutes) → cases de tapis effectif disponibles :
+  // seuls les tapis pour lesquels une range existe réellement sont proposés.
+  const stackOptions = useMemo(() => {
+    const relevant = filterPosition === ALL ? withMeta : withMeta.filter((m) => m._meta.position === filterPosition)
+    const present = new Set()
+    relevant.forEach((m) => { if (m._meta.stack != null) present.add(m._meta.stack) })
+    return STACK_OPTIONS.filter((n) => present.has(n)).map((n) => ({ id: String(n), name: `${n} bb` }))
+  }, [withMeta, filterPosition])
+
+  // Si le tapis coché n'existe plus pour la position choisie, on le désélectionne.
+  useEffect(() => {
+    if (filterStack !== ALL && !stackOptions.find((s) => s.id === filterStack)) {
+      setFilterStack(ALL)
+    }
+  }, [stackOptions, filterStack])
 
   const filtered = useMemo(
     () =>
       withMeta.filter(
         (m) =>
           (filterPosition === ALL || m._meta.position === filterPosition) &&
-          (filterPlayers === ALL || m._meta.players === filterPlayers) &&
           (filterStack === ALL || m._meta.stack === Number(filterStack)),
       ),
-    [withMeta, filterPosition, filterPlayers, filterStack],
+    [withMeta, filterPosition, filterStack],
   )
 
   // Dès que les cases cochées ne laissent plus qu'une seule range possible,
-  // on l'affiche directement (peu importe combien de catégories — position,
-  // joueurs, tapis — ont servi à y arriver : la position à elle seule suffit
-  // déjà à distinguer par ex. « SB » de « SB HU »). Sinon, on retombe sur le
-  // premier résultat filtré si la sélection courante n'en fait plus partie.
+  // on l'affiche directement. Sinon, on retombe sur le premier résultat
+  // filtré si la sélection courante n'en fait plus partie.
   useEffect(() => {
     if (filtered.length === 1) {
       setSelectedId(filtered[0].id)
@@ -96,7 +107,7 @@ export default function ConsultView({ matrices, onUpdateMeta }) {
       setSelectedId(filtered[0]?.id || null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterPosition, filterPlayers, filterStack, filtered])
+  }, [filterPosition, filterStack, filtered])
 
   const matrix = withMeta.find((m) => m.id === selectedId) || null
 
@@ -120,9 +131,22 @@ export default function ConsultView({ matrices, onUpdateMeta }) {
         <h2>Ranges</h2>
 
         <div className="consult-filters">
-          <ChipGroup label="Position" options={POSITIONS} value={filterPosition} onChange={setFilterPosition} />
-          <ChipGroup label="Joueurs" options={PLAYER_COUNTS} value={filterPlayers} onChange={setFilterPlayers} />
-          <ChipGroup label="Tapis effectif" options={STACK_CHIP_OPTIONS} value={filterStack} onChange={setFilterStack} />
+          <div className="filter-group">
+            <span className="filter-group-label">Position</span>
+            <div className="position-columns">
+              {POSITION_GROUPS.map((group) => (
+                <ChipGroup
+                  key={group.id}
+                  label={group.label}
+                  vertical
+                  options={group.positionIds.map((id) => POSITIONS.find((p) => p.id === id)).filter(Boolean)}
+                  value={filterPosition}
+                  onChange={setFilterPosition}
+                />
+              ))}
+            </div>
+          </div>
+          <ChipGroup label="Tapis effectif" options={stackOptions} value={filterStack} onChange={setFilterStack} />
         </div>
 
         {filtered.length === 0 ? (
@@ -166,27 +190,6 @@ export default function ConsultView({ matrices, onUpdateMeta }) {
               >
                 {simplifiedView ? '✓ Vue simplifiée' : 'Vue simplifiée'}
               </button>
-            </div>
-
-            <div className="consult-tags">
-              <ChipGroup
-                label="Position"
-                options={POSITIONS}
-                value={matrix._meta.position ?? ALL}
-                onChange={(v) => onUpdateMeta(matrix.id, { position: v === ALL ? null : v })}
-              />
-              <ChipGroup
-                label="Joueurs"
-                options={PLAYER_COUNTS}
-                value={matrix._meta.players ?? ALL}
-                onChange={(v) => onUpdateMeta(matrix.id, { players: v === ALL ? null : v })}
-              />
-              <ChipGroup
-                label="Tapis effectif"
-                options={STACK_CHIP_OPTIONS}
-                value={matrix._meta.stack != null ? String(matrix._meta.stack) : ALL}
-                onChange={(v) => onUpdateMeta(matrix.id, { stack: v === ALL ? null : Number(v) })}
-              />
             </div>
 
             <div className="grid-wrap consult-grid">

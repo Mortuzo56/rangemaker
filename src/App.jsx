@@ -194,13 +194,6 @@ export default function App() {
     }
   }
 
-  // Met à jour (fusionne) les métadonnées d'une matrice : type / tapis / style.
-  const updateMatrixMeta = (id, partialMeta) => {
-    setMatrices((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, meta: { ...getMeta(m), ...partialMeta } } : m)),
-    )
-  }
-
   // Normalise un objet importé en matrice valide (ou null si invalide).
   const toMatrix = (data) => {
     if (!data || !Array.isArray(data.actions) || typeof data.cells !== 'object') return null
@@ -268,7 +261,7 @@ export default function App() {
       </nav>
 
       {view === 'view' ? (
-        <ConsultView matrices={matrices} onUpdateMeta={updateMatrixMeta} />
+        <ConsultView matrices={matrices} />
       ) : view === 'train' ? (
         <TrainingView matrices={matrices} />
       ) : (
