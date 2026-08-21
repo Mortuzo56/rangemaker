@@ -7,6 +7,27 @@ import { RANGE_TYPES, RANGE_STYLES, POSITIONS, getMeta } from '../utils/meta.js'
 const ALL = 'all'
 
 /**
+ * Réduit les entrées d'une case à l'action majoritaire uniquement (vue
+ * simplifiée). En cas d'égalité, on garde l'action la plus agressive, c'est
+ * à dire celle qui apparaît en premier dans la liste des actions de la
+ * matrice (convention déjà utilisée pour l'ordre des bandes gauche→droite).
+ */
+function dominantEntries(entries, actions) {
+  if (!entries || !entries.length) return []
+  const orderIndex = Object.fromEntries(actions.map((a, i) => [a.id, i]))
+  let best = null
+  for (const e of entries) {
+    if (!e.percent) continue
+    if (!best || e.percent > best.percent) {
+      best = e
+    } else if (e.percent === best.percent) {
+      if ((orderIndex[e.actionId] ?? 99) < (orderIndex[best.actionId] ?? 99)) best = e
+    }
+  }
+  return best ? [{ actionId: best.actionId, percent: 100 }] : []
+}
+
+/**
  * Onglet "Consultation" : liste des ranges enregistrées, filtrable par type
  * (open / réaction), tapis effectif (bb) et style (simplifiée / GTO), +
  * affichage en lecture seule. On ne peut pas modifier la grille ; cliquer
@@ -15,6 +36,7 @@ const ALL = 'all'
 export default function ConsultView({ matrices, onUpdateMeta }) {
   const [selectedId, setSelectedId] = useState(matrices[0]?.id || null)
   const [selectedCell, setSelectedCell] = useState(null)
+  const [simplifiedView, setSimplifiedView] = useState(false)
 
   const [filterType, setFilterType] = useState(ALL)
   const [filterStack, setFilterStack] = useState(ALL)
@@ -153,6 +175,13 @@ export default function ConsultView({ matrices, onUpdateMeta }) {
                   </span>
                 ))}
               </div>
+              <button
+                className={'btn btn-mini-toggle' + (simplifiedView ? ' active' : '')}
+                onClick={() => setSimplifiedView((v) => !v)}
+                title="N'affiche que l'action majoritaire de chaque case (l'action la plus agressive en cas d'égalité)"
+              >
+                {simplifiedView ? '✓ Vue simplifiée' : 'Vue simplifiée'}
+              </button>
             </div>
 
             <div className="consult-tags">
@@ -210,13 +239,15 @@ export default function ConsultView({ matrices, onUpdateMeta }) {
                   <div className="grid-head">{rowRank}</div>
                   {RANKS.map((colRank, col) => {
                     const name = handName(row, col)
+                    const rawEntries = matrix.cells[name] || []
+                    const entries = simplifiedView ? dominantEntries(rawEntries, matrix.actions) : rawEntries
                     return (
                       <ViewerCell
                         key={name}
                         row={row}
                         col={col}
                         name={name}
-                        entries={matrix.cells[name] || []}
+                        entries={entries}
                         actionsById={actionsById}
                         actionOrder={actionOrder}
                         selected={selectedCell === name}
