@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import RAW_PACK from '../../../data/handTrainer/poker_training_scenarios_v1.json'
-import { loadScenarioPack, scenarioFacets, buildSessionQueue, applyChoice, scoreOf } from '../../../utils/handTrainerEngine.js'
+import { loadScenarioPack, scenarioFacets, buildSessionQueue, applyChoice, scoreOf, parseActionText } from '../../../utils/handTrainerEngine.js'
 import { loadAttempts, recordAttempt, loadReviewList, saveReviewList, getWeakestTags } from '../../../utils/handTrainerHistory.js'
 import FilterChips from './FilterChips.jsx'
 import HandTrainerScene from './HandTrainerScene.jsx'
@@ -58,6 +58,8 @@ export default function HandTrainerDrill() {
   const [queue, setQueue] = useState([])
   const [queueIndex, setQueueIndex] = useState(0)
   const [currentNodeId, setCurrentNodeId] = useState(null)
+  const [previousNode, setPreviousNode] = useState(null) // node quitté à la transition précédente (pour animer pot/board)
+  const [foldedVillainPositions, setFoldedVillainPositions] = useState(() => new Set())
   const [handDecisions, setHandDecisions] = useState([])
   const [sessionHands, setSessionHands] = useState([]) // [{ scenario, decisions }]
   const [addedToReviewThisHand, setAddedToReviewThisHand] = useState(false)
@@ -97,6 +99,8 @@ export default function HandTrainerDrill() {
 
   const startScenario = (scenario) => {
     setCurrentNodeId(scenario.start_node_id)
+    setPreviousNode(null)
+    setFoldedVillainPositions(new Set())
     setHandDecisions([])
     setAddedToReviewThisHand(false)
     setPhase('playing')
@@ -140,6 +144,14 @@ export default function HandTrainerDrill() {
     if (result.terminal) {
       finishHand(currentScenario, nextDecisions)
     } else {
+      // Le node quitté avait éventuellement lui-même une action adverse
+      // (celle à laquelle Hero vient de répondre) : si c'est un fold, le
+      // siège correspondant reste grisé pour le reste de la main.
+      const leavingVillain = parseActionText(result.node.state.villain_action)
+      if (leavingVillain?.verb === 'fold' && leavingVillain.position) {
+        setFoldedVillainPositions((prev) => new Set(prev).add(leavingVillain.position))
+      }
+      setPreviousNode(result.node)
       setCurrentNodeId(result.nextNodeId)
     }
   }
@@ -276,6 +288,8 @@ export default function HandTrainerDrill() {
         key={currentNode.id}
         scenario={currentScenario}
         node={currentNode}
+        previousNode={previousNode}
+        foldedVillainPositions={foldedVillainPositions}
         handNumber={queueIndex + 1}
         totalHands={queue.length}
         onChoose={onChooseOption}

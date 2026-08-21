@@ -171,6 +171,46 @@ export function gradeLabel(grade) {
   return 'Mauvais'
 }
 
+const POSITIONS_3MAX = ['BTN', 'SB', 'BB']
+const POSITIONS_HU = ['SB', 'BB']
+
+/**
+ * Sièges adverses de la table pour un scénario : toutes les positions du
+ * format (2 ou 3 joueurs) sauf celle du héros. `heroPosition` est lu sur le
+ * node courant (et non supposé fixe) pour rester entièrement piloté par les
+ * données.
+ */
+export function tableSeatPositions(scenario, heroPosition) {
+  const isHU = scenario.format?.players === 2
+  const order = isHU ? POSITIONS_HU : POSITIONS_3MAX
+  return { isHU, villainPositions: order.filter((p) => p !== heroPosition) }
+}
+
+const ACTION_VERB_RE = /(fold|check|call|bet|raise|shove|all-?in)/i
+const AMOUNT_RE = /(\d+(?:\.\d+)?)\s*bb/i
+const POS_TOKEN_RE = /^(BTN|SB|BB)\b/i
+const CHIP_VERBS = new Set(['call', 'bet', 'raise', 'shove', 'allin'])
+
+/**
+ * Parse un texte d'action libre du pack ("SB bet 1.5 BB", "BTN fold", "BB
+ * calls") en { position, verb, amount, movesChips }. Ne devine jamais une
+ * position ou un montant absent du texte : renvoie `null` pour ce champ.
+ */
+export function parseActionText(text) {
+  if (!text) return null
+  const posMatch = text.match(POS_TOKEN_RE)
+  const verbMatch = text.match(ACTION_VERB_RE)
+  const amountMatch = text.match(AMOUNT_RE)
+  const verb = verbMatch ? verbMatch[1].toLowerCase().replace('-', '') : null
+  return {
+    raw: text,
+    position: posMatch ? posMatch[1].toUpperCase() : null,
+    verb,
+    amount: amountMatch ? Number(amountMatch[1]) : null,
+    movesChips: CHIP_VERBS.has(verb),
+  }
+}
+
 /** Couleur par défaut des boutons de décision, par type d'action (le pack ne fournit pas de couleur explicite). */
 export const ACTION_TYPE_COLOR = {
   fold: '#9e9e9e',

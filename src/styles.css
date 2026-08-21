@@ -1656,43 +1656,71 @@ button:focus-visible {
 .ht-progress {
   font-weight: 600;
 }
-.ht-info-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 4px 0 14px;
-}
-.ht-info-chip {
-  background: var(--bg-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  padding: 4px 12px;
+.ht-street-label {
+  display: block;
+  text-align: center;
+  color: var(--muted);
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--muted);
+  margin: 2px 0 4px;
 }
-.ht-board {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
+
+/* --- Table en feutre (mode "Situations complètes") ---
+   Réutilise .table, .seat, .pot, .bet, .pcards de la table du mode Classique
+   (voir plus haut) : mêmes classes, ajouts limités à ce qui est spécifique
+   ici (board réel au centre, jeton/bulle d'action adverse animés). */
+.ht-scene .table {
   margin-bottom: 18px;
 }
+.ht-table-board {
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  z-index: 2;
+}
+.ht-board-card {
+  width: 34px;
+  height: 48px;
+}
+.ht-board-card .card-rank {
+  font-size: 15px;
+}
+.ht-board-card .card-suit {
+  font-size: 13px;
+}
 .ht-card-empty {
-  background: var(--bg-alt);
-  border: 1.5px dashed var(--border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
   box-shadow: none;
 }
-.ht-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 14px;
+@keyframes htChipIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
-.ht-hero-label {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 600;
+@keyframes htBubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.ht-chip-anim {
+  animation: htChipIn 0.35s ease-out;
+}
+.ht-bubble-anim {
+  animation: htBubbleIn 0.3s ease-out;
 }
 .ht-history {
   list-style: none;
