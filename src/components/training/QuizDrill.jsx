@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getMeta } from '../../utils/meta.js'
+import { getMeta, isReactionPosition } from '../../utils/meta.js'
 import { computeBorderHands } from '../../utils/borderHands.js'
 import { loadHistory, saveHistory, recordResult, pickDueHand } from '../../utils/history.js'
 import RangeMultiSelect from './RangeMultiSelect.jsx'
@@ -9,7 +9,8 @@ import RangeMultiSelect from './RangeMultiSelect.jsx'
 // Type d'action de la SB déduit du nom de la range (ranges "réaction" uniquement).
 function villainActionType(name) {
   if (/shove|all[\s-]?in|tapis/i.test(name)) return 'shove'
-  if (/2\s*bb/i.test(name)) return 'raise2'
+  // \b évite de matcher le "2bb" du tapis effectif (ex. "... — 12bb").
+  if (/\b2\s*bb/i.test(name)) return 'raise2'
   return 'call' // "vs Call SB" (limp)
 }
 
@@ -74,6 +75,10 @@ const MODE_HINTS = {
  *  - 'srs'     : sélection par répétition espacée (historique inter-spots)
  */
 export default function QuizDrill({ matrices, mode = 'classic' }) {
+  // Tant que l'entraînement n'est pas lancé, on affiche l'écran de paramétrage
+  // (périmètre + nombre de questions + chrono) au lieu de la table de jeu :
+  // le score affiché ensuite ne concerne alors que cette session-là.
+  const [started, setStarted] = useState(false)
   const [selectedIds, setSelectedIds] = useState(() => new Set(matrices.map((m) => m.id)))
   const [question, setQuestion] = useState(null) // { matrixId, hand }
   const [answered, setAnswered] = useState(null) // { chosenId, result }
@@ -201,27 +206,29 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
     nextQuestion()
   }, [nextQuestion])
 
-  const selectLimit = (n) => {
+  const chooseLimit = (n) => {
     setLimit(n)
     setCustomLimitInput('')
-    resetSession()
   }
 
   const commitCustomLimit = () => {
     const n = parseInt(customLimitInput, 10)
-    if (Number.isFinite(n) && n > 0) {
-      setLimit(n)
-      resetSession()
-    } else {
-      setCustomLimitInput('')
-    }
+    if (Number.isFinite(n) && n > 0) setLimit(n)
+    else setCustomLimitInput('')
   }
+
+  // Lance l'entraînement avec les paramètres choisis : score et question remis à zéro.
+  const handleStart = () => {
+    resetSession()
+    setStarted(true)
+  }
+  const backToSetup = () => setStarted(false)
 
   const matrix = question && matrices.find((m) => m.id === question.matrixId)
   const meta = matrix ? getMeta(matrix) : null
-  // Range "réaction" (ex. BB vs Call/Raise/Shove SB) : le vilain agit avant nous.
+  // Range "réaction" (BB vs SB/BTN) : le vilain agit avant nous.
   // Range "open" : c'est nous qui ouvrons (SB/BTN), pas d'action adverse à révéler.
-  const isReaction = meta?.type === 'reaction'
+  const isReaction = isReactionPosition(meta?.position)
 
   // Révélation progressive à chaque nouvelle question.
   useEffect(() => {
@@ -277,6 +284,80 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
     )
   }
 
+  if (!started) {
+    return (
+      <div className="training train-setup">
+        {MODE_HINTS[mode] && <p className="hint train-mode-hint">{MODE_HINTS[mode]}</p>}
+
+        <RangeMultiSelect
+          matrices={usable}
+          selectedIds={selectedIds}
+          onToggle={toggleRange}
+          onSelectAll={selectAllRanges}
+          onSelectNone={selectNoneRanges}
+        />
+
+        <div className="train-limit">
+          <span className="train-limit-label">Nombre de questions :</span>
+          <div className="limit-chips">
+            <button className={'chip' + (limit === null ? ' active' : '')} onClick={() => chooseLimit(null)}>
+              Illimité
+            </button>
+            {LIMIT_PRESETS.map((n) => (
+              <button key={n} className={'chip' + (limit === n ? ' active' : '')} onClick={() => chooseLimit(n)}>
+                {n}
+              </button>
+            ))}
+            <input
+              type="number"
+              min="1"
+              className={'chip-input' + (limit != null && !LIMIT_PRESETS.includes(limit) ? ' active' : '')}
+              placeholder="Autre…"
+              value={customLimitInput}
+              onChange={(e) => setCustomLimitInput(e.target.value)}
+              onBlur={commitCustomLimit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  commitCustomLimit()
+                  e.target.blur()
+                }
+              }}
+            />
+          </div>
+        </div>
+
+        {mode === 'speed' && (
+          <div className="train-limit">
+            <span className="train-limit-label">Temps par question :</span>
+            <div className="limit-chips">
+              {TIMER_PRESETS.map((n) => (
+                <button
+                  key={n}
+                  className={'chip' + (timerDuration === n ? ' active' : '')}
+                  onClick={() => setTimerDuration(n)}
+                >
+                  {n}s
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button
+          className="btn btn-primary train-start-btn"
+          disabled={selectedIds.size === 0}
+          onClick={handleStart}
+        >
+          Lancer l'entraînement →
+        </button>
+        {selectedIds.size === 0 && (
+          <p className="hint">Sélectionnez au moins une range dans « Ranges travaillées » ci-dessus.</p>
+        )}
+      </div>
+    )
+  }
+
   // --- Données de la table ---
   const bb = meta?.stack ?? NaN
   const hasStacks = bb != null && !Number.isNaN(bb)
@@ -293,17 +374,54 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
   const heroBehind = hasStacks ? bb - heroBet : null
   const pot = villainBet + heroBet
 
-  const villainLabel = isReaction ? 'SB / BTN' : 'BB'
-  const heroLabel = isReaction ? 'BB (vous)' : 'SB / BTN (vous)'
+  const villainLabel = isReaction ? 'SB' : 'BB'
+  const heroLabel = isReaction ? 'BB (vous)' : `${POS_LABEL_3MAX[meta?.position] || 'SB'} (vous)`
 
-  // Table à 3 sièges (BTN/SB/BB) : uniquement pour les ranges d'open dont la
-  // position du héros est explicitement BTN, SB ou BB (nos ranges 3-max
-  // actuelles). Toute autre position (Heads-Up, ou position non reconnue)
-  // retombe sur la table à 2 sièges historique ci-dessus.
+  // Table à 3 sièges (BTN/SB/BB) : pour les ranges d'open (BTN/SB) ET pour les
+  // réactions de la BB en 3-max (BB vs SB, BB vs BTN) — dans ce dernier cas
+  // l'un des 2 adversaires a déjà foldé avant que l'action nous arrive.
+  // Heads-Up (SB Open ou "BB HU") retombe sur la table à 2 sièges historique.
   const heroPos3 = meta?.position
-  const is3Max = ORDER_3MAX.includes(heroPos3)
+  const is3Max = meta?.players === '3max'
+  const REACTION_VILLAIN_3MAX = { 'bb-vs-sb': 'sb', 'bb-vs-btn': 'btn' }
+  const villain3MaxPos = REACTION_VILLAIN_3MAX[heroPos3]
   let seats
-  if (is3Max) {
+  let potValue
+  if (is3Max && villain3MaxPos) {
+    const foldedPos = villain3MaxPos === 'sb' ? 'btn' : 'sb'
+    const villainBetNow = phase >= 1 ? actionBet : BLIND_3MAX[villain3MaxPos]
+    const villain3MaxBehind = hasStacks ? bb - villainBetNow : null
+    const foldedBehind = hasStacks ? bb - BLIND_3MAX[foldedPos] : null
+    seats = [
+      {
+        key: 'topLeft',
+        label: POS_LABEL_3MAX[foldedPos],
+        stack: foldedBehind,
+        bet: BLIND_3MAX[foldedPos],
+        isHero: false,
+        dealer: foldedPos === 'btn',
+        folded: true,
+      },
+      {
+        key: 'topRight',
+        label: POS_LABEL_3MAX[villain3MaxPos],
+        stack: villain3MaxBehind,
+        bet: villainBetNow,
+        isHero: false,
+        dealer: villain3MaxPos === 'btn',
+        actionText: phase >= 1 ? actionText : null,
+      },
+      {
+        key: 'bottom',
+        label: 'BB (vous)',
+        stack: heroBehind,
+        bet: heroBet,
+        isHero: true,
+        dealer: false,
+      },
+    ]
+    potValue = heroBet + villainBetNow + BLIND_3MAX[foldedPos]
+  } else if (is3Max) {
     const heroIdx = ORDER_3MAX.indexOf(heroPos3)
     const leftPos = ORDER_3MAX[(heroIdx + 1) % 3]
     const rightPos = ORDER_3MAX[(heroIdx + 2) % 3]
@@ -334,6 +452,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
         dealer: heroPos3 === 'btn',
       },
     ]
+    potValue = 0.5 + 1
   } else {
     seats = [
       {
@@ -354,8 +473,8 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
         dealer: !isReaction,
       },
     ]
+    potValue = pot
   }
-  const potValue = is3Max ? 0.5 + 1 : pot
   const SEAT_CLASS = { top: 'seat-top', topLeft: 'seat-top-left', topRight: 'seat-top-right', bottom: 'seat-bottom' }
 
   const cards = question ? handCards(question.hand) : []
@@ -375,15 +494,11 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
 
   return (
     <div className="training">
-      {/* Barre du haut : périmètre + score */}
+      {/* Barre du haut : retour aux paramètres + score de cette session */}
       <div className="train-top">
-        <RangeMultiSelect
-          matrices={usable}
-          selectedIds={selectedIds}
-          onToggle={toggleRange}
-          onSelectAll={selectAllRanges}
-          onSelectNone={selectNoneRanges}
-        />
+        <button className="btn-mini" onClick={backToSetup}>
+          ← Paramètres
+        </button>
         <div className="train-score">
           Score : <b className="res-excellent">{stats.excellent}</b> excellent&nbsp;·&nbsp;
           <b className="res-bon">{stats.bon}</b> bon&nbsp;·&nbsp;
@@ -391,74 +506,10 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
           {mode === 'speed' && avgResponseMs != null && (
             <span className="train-avg-time">· ⏱ moy. {(avgResponseMs / 1000).toFixed(2)}s</span>
           )}
-          {total > 0 && (
-            <button
-              className="btn-mini"
-              onClick={() => {
-                setStats({ excellent: 0, bon: 0, faux: 0 })
-                setResponseTimes([])
-              }}
-            >
-              Réinitialiser
-            </button>
-          )}
         </div>
       </div>
 
-      {MODE_HINTS[mode] && <p className="hint train-mode-hint">{MODE_HINTS[mode]}</p>}
-
-      {/* Longueur de la session */}
-      <div className="train-limit">
-        <span className="train-limit-label">Nombre de questions :</span>
-        <div className="limit-chips">
-          <button className={'chip' + (limit === null ? ' active' : '')} onClick={() => selectLimit(null)}>
-            Illimité
-          </button>
-          {LIMIT_PRESETS.map((n) => (
-            <button key={n} className={'chip' + (limit === n ? ' active' : '')} onClick={() => selectLimit(n)}>
-              {n}
-            </button>
-          ))}
-          <input
-            type="number"
-            min="1"
-            className={'chip-input' + (limit != null && !LIMIT_PRESETS.includes(limit) ? ' active' : '')}
-            placeholder="Autre…"
-            value={customLimitInput}
-            onChange={(e) => setCustomLimitInput(e.target.value)}
-            onBlur={commitCustomLimit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                commitCustomLimit()
-                e.target.blur()
-              }
-            }}
-          />
-        </div>
-        {limit != null && !sessionDone && <span className="train-progress">Question {questionNumber} / {limit}</span>}
-      </div>
-
-      {mode === 'speed' && (
-        <div className="train-limit">
-          <span className="train-limit-label">Temps par question :</span>
-          <div className="limit-chips">
-            {TIMER_PRESETS.map((n) => (
-              <button
-                key={n}
-                className={'chip' + (timerDuration === n ? ' active' : '')}
-                onClick={() => setTimerDuration(n)}
-              >
-                {n}s
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!question && selectedIds.size === 0 && (
-        <p className="hint">Sélectionnez au moins une range dans « Ranges travaillées » ci-dessus.</p>
-      )}
+      {limit != null && !sessionDone && <span className="train-progress">Question {questionNumber} / {limit}</span>}
 
       {matrix && question && (
         <>
@@ -471,7 +522,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
             </div>
 
             {seats.map((s) => (
-              <div key={s.key} className={'seat ' + SEAT_CLASS[s.key]}>
+              <div key={s.key} className={'seat ' + SEAT_CLASS[s.key] + (s.folded ? ' seat-folded' : '')}>
                 {s.isHero ? (
                   <>
                     <div className="bet bet-hero">
@@ -506,13 +557,16 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
                         <div className="pname">
                           {s.label}
                           {s.dealer && <span className="dealer" title="Bouton">D</span>}
+                          {s.folded && <span className="fold-tag">Fold</span>}
                         </div>
                         <div className="pstack">{fmt(s.stack)} BB</div>
                       </div>
                     </div>
-                    <div className="bet bet-villain">
-                      <span className="chip-token" /> {fmt(s.bet)} BB
-                    </div>
+                    {!s.folded && (
+                      <div className="bet bet-villain">
+                        <span className="chip-token" /> {fmt(s.bet)} BB
+                      </div>
+                    )}
                     {s.actionText && <div className="action-bubble">{s.actionText}</div>}
                   </>
                 )}
@@ -592,9 +646,14 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
                         </>
                       )}
                     </div>
-                    <button className="btn btn-primary" onClick={resetSession}>
-                      Nouvelle session
-                    </button>
+                    <div className="session-end-actions">
+                      <button className="btn btn-primary" onClick={resetSession}>
+                        Rejouer (mêmes paramètres)
+                      </button>
+                      <button className="btn" onClick={backToSetup}>
+                        Nouvel entraînement
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <button className="btn btn-primary" onClick={nextQuestion}>

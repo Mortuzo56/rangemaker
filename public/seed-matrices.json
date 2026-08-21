@@ -1044,9 +1044,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
-      "position": "sb-hu",
+      "position": "sb",
+      "players": "hu",
       "stack": 4
     }
   },
@@ -2099,9 +2098,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
-      "position": "sb-hu",
+      "position": "sb",
+      "players": "hu",
       "stack": 5
     }
   },
@@ -3250,9 +3248,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
-      "position": "sb-hu",
+      "position": "sb",
+      "players": "hu",
       "stack": 6
     }
   },
@@ -4381,9 +4378,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
-      "position": "sb-hu",
+      "position": "sb",
+      "players": "hu",
       "stack": 7
     }
   },
@@ -5524,9 +5520,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
-      "position": "sb-hu",
+      "position": "sb",
+      "players": "hu",
       "stack": 8
     }
   },
@@ -6647,9 +6642,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
-      "position": "sb-hu",
+      "position": "sb",
+      "players": "hu",
       "stack": 9
     }
   },
@@ -7774,9 +7768,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
-      "position": "sb-hu",
+      "position": "sb",
+      "players": "hu",
       "stack": 10
     }
   },
@@ -9113,9 +9106,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
-      "position": "sb-hu",
+      "position": "sb",
+      "players": "hu",
       "stack": 12
     }
   },
@@ -10164,9 +10156,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "btn",
+      "players": "3max",
       "stack": 6
     }
   },
@@ -11215,9 +11206,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "btn",
+      "players": "3max",
       "stack": 8
     }
   },
@@ -12346,9 +12336,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "btn",
+      "players": "3max",
       "stack": 10
     }
   },
@@ -13465,9 +13454,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "btn",
+      "players": "3max",
       "stack": 12
     }
   },
@@ -14576,9 +14564,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "btn",
+      "players": "3max",
       "stack": 15
     }
   },
@@ -15631,9 +15618,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "sb",
+      "players": "3max",
       "stack": 6
     }
   },
@@ -16838,9 +16824,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "sb",
+      "players": "3max",
       "stack": 8
     }
   },
@@ -18009,9 +17994,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "sb",
+      "players": "3max",
       "stack": 10
     }
   },
@@ -19424,9 +19408,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "sb",
+      "players": "3max",
       "stack": 12
     }
   },
@@ -20835,9 +20818,8 @@
       ]
     },
     "meta": {
-      "type": "open",
-      "style": "gto",
       "position": "sb",
+      "players": "3max",
       "stack": 15
     }
   }

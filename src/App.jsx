@@ -11,7 +11,7 @@ import { emptyCells, cellTotal } from './utils/hands.js'
 import { loadMatrices, saveMatrices, makeId } from './utils/storage.js'
 import { getMeta } from './utils/meta.js'
 
-const DEFAULT_META = { type: 'open', style: 'gto', position: null, stack: null }
+const DEFAULT_META = { position: null, players: null, stack: null }
 
 export default function App() {
   // --- État de la matrice en cours d'édition ---

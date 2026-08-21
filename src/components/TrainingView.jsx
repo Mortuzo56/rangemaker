@@ -38,7 +38,9 @@ export default function TrainingView({ matrices }) {
       </div>
 
       {(mode === 'classic' || mode === 'speed' || mode === 'border' || mode === 'srs') && (
-        <QuizDrill matrices={matrices} mode={mode} />
+        // key={mode} : instance dédiée par variante, pour ne jamais mélanger le
+        // score ou les paramètres d'un mode avec un autre.
+        <QuizDrill key={mode} matrices={matrices} mode={mode} />
       )}
       {mode === 'reversed' && <ReversedDrill matrices={matrices} />}
       {mode === 'build' && <BuildDrill matrices={matrices} />}

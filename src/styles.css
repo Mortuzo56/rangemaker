@@ -166,51 +166,53 @@ body {
 .consult-filters {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 14px;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
 }
-.consult-filters label {
+.consult-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+/* Groupe de cases cliquables (remplace les menus déroulants de filtre/tag) */
+.filter-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+}
+.filter-group-label {
   font-size: 11.5px;
   color: var(--muted);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
-.consult-filters select {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
-  font-size: 13px;
-  color: var(--text);
-  background: var(--input-bg);
-}
-.consult-tags {
+.filter-chips {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.consult-tags label {
-  display: flex;
-  align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 600;
 }
-.consult-tags select {
+.filter-chip {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 4px 6px;
-  font-size: 13px;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--text);
   background: var(--input-bg);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.filter-chip:hover {
+  background: var(--hover-bg);
+}
+.filter-chip.active {
+  border-color: var(--primary);
+  background: var(--active-bg);
+  color: var(--primary);
 }
 .consult-item {
   padding: 9px 11px;
@@ -519,6 +521,8 @@ body {
   font-weight: 700;
 }
 .train-progress {
+  display: block;
+  margin: -8px 0 14px;
   font-size: 12.5px;
   color: var(--muted);
   font-weight: 600;
@@ -532,6 +536,25 @@ body {
 .session-end-title {
   font-size: 14px;
   font-weight: 600;
+}
+.session-end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* --- Écran de paramétrage avant le lancement d'un entraînement --- */
+.train-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+.train-start-btn {
+  margin-top: 4px;
+  padding: 10px 24px;
+  font-size: 14.5px;
 }
 /* --- Table de poker ---
    Rendu volontairement indépendant du thème clair/sombre de l'appli (une
@@ -659,6 +682,22 @@ body {
   font-weight: 800;
   border: 1px solid #90949e;
 }
+.seat-folded {
+  opacity: 0.45;
+}
+.fold-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(220, 38, 38, 0.18);
+  color: #f87171;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
 .pstack {
   font-size: 12.5px;
   font-weight: 700;
@@ -756,7 +795,17 @@ body {
 .train-play {
   text-align: center;
   margin-top: 18px;
-  min-height: 60px;
+  /* Hauteur mini généreuse : sans elle, le passage à "Question suivante"
+     réduit brièvement le contenu (retour à l'état "…") et les navigateurs
+     mobiles recalent alors le scroll en haut de page (la page devient plus
+     courte que la position de scroll courante). On garde donc toujours assez
+     de place pour l'état le plus haut (bannière + détail + bouton). */
+  min-height: 230px;
+}
+@media (max-width: 640px) {
+  .train-play {
+    min-height: 280px;
+  }
 }
 .train-wait {
   color: var(--muted);

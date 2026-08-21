@@ -2,9 +2,36 @@ import React, { useEffect, useMemo, useState } from 'react'
 import ViewerCell from './ViewerCell.jsx'
 import { RANKS } from '../constants.js'
 import { handName } from '../utils/hands.js'
-import { RANGE_TYPES, RANGE_STYLES, POSITIONS, getMeta } from '../utils/meta.js'
+import { POSITIONS, PLAYER_COUNTS, STACK_OPTIONS, getMeta } from '../utils/meta.js'
 
 const ALL = 'all'
+
+const STACK_CHIP_OPTIONS = STACK_OPTIONS.map((n) => ({ id: String(n), name: `${n} bb` }))
+
+/**
+ * Groupe de cases cliquables (au lieu d'un menu déroulant) : une case active
+ * à la fois par groupe. Cliquer la case déjà active la désactive (retour à
+ * "tous"/"aucun").
+ */
+function ChipGroup({ label, options, value, onChange }) {
+  return (
+    <div className="filter-group">
+      <span className="filter-group-label">{label}</span>
+      <div className="filter-chips">
+        {options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            className={'filter-chip' + (value === opt.id ? ' active' : '')}
+            onClick={() => onChange(value === opt.id ? ALL : opt.id)}
+          >
+            {opt.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 /**
  * Réduit les entrées d'une case à l'action majoritaire uniquement (vue
@@ -28,49 +55,47 @@ function dominantEntries(entries, actions) {
 }
 
 /**
- * Onglet "Consultation" : liste des ranges enregistrées, filtrable par type
- * (open / réaction), tapis effectif (bb) et style (simplifiée / GTO), +
- * affichage en lecture seule. On ne peut pas modifier la grille ; cliquer
- * une case l'agrandit et montre les pourcentages de chaque action.
+ * Onglet "Consultation" : liste des ranges enregistrées, filtrable par cases
+ * cliquables (position / nombre de joueurs / tapis effectif) + affichage en
+ * lecture seule. On ne peut pas modifier la grille ; cliquer une case
+ * l'agrandit et montre les pourcentages de chaque action.
  */
 export default function ConsultView({ matrices, onUpdateMeta }) {
   const [selectedId, setSelectedId] = useState(matrices[0]?.id || null)
   const [selectedCell, setSelectedCell] = useState(null)
   const [simplifiedView, setSimplifiedView] = useState(false)
 
-  const [filterType, setFilterType] = useState(ALL)
-  const [filterStack, setFilterStack] = useState(ALL)
-  const [filterStyle, setFilterStyle] = useState(ALL)
   const [filterPosition, setFilterPosition] = useState(ALL)
+  const [filterPlayers, setFilterPlayers] = useState(ALL)
+  const [filterStack, setFilterStack] = useState(ALL)
 
   // Chaque matrice enrichie de ses métadonnées effectives (explicites ou déduites du nom).
   const withMeta = useMemo(() => matrices.map((m) => ({ ...m, _meta: getMeta(m) })), [matrices])
-
-  // Valeurs de tapis disponibles pour le menu déroulant, triées croissant.
-  const availableStacks = useMemo(() => {
-    const set = new Set()
-    withMeta.forEach((m) => { if (m._meta.stack != null) set.add(m._meta.stack) })
-    return [...set].sort((a, b) => a - b)
-  }, [withMeta])
 
   const filtered = useMemo(
     () =>
       withMeta.filter(
         (m) =>
-          (filterType === ALL || m._meta.type === filterType) &&
-          (filterStack === ALL || m._meta.stack === Number(filterStack)) &&
-          (filterStyle === ALL || m._meta.style === filterStyle) &&
-          (filterPosition === ALL || m._meta.position === filterPosition),
+          (filterPosition === ALL || m._meta.position === filterPosition) &&
+          (filterPlayers === ALL || m._meta.players === filterPlayers) &&
+          (filterStack === ALL || m._meta.stack === Number(filterStack)),
       ),
-    [withMeta, filterType, filterStack, filterStyle, filterPosition],
+    [withMeta, filterPosition, filterPlayers, filterStack],
   )
 
-  // Si la sélection n'existe plus (suppression) ou sort du filtre, on retombe sur le premier résultat filtré.
+  // Dès que les 3 cases nécessaires (position + joueurs + tapis) sont actives,
+  // on affiche directement la range correspondante. Sinon, on retombe sur le
+  // premier résultat filtré si la sélection courante n'en fait plus partie.
   useEffect(() => {
-    if (!filtered.find((m) => m.id === selectedId)) {
+    const allChosen = filterPosition !== ALL && filterPlayers !== ALL && filterStack !== ALL
+    if (allChosen && filtered.length) {
+      setSelectedId(filtered[0].id)
+      setSelectedCell(null)
+    } else if (!filtered.find((m) => m.id === selectedId)) {
       setSelectedId(filtered[0]?.id || null)
     }
-  }, [filtered, selectedId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterPosition, filterPlayers, filterStack, filtered])
 
   const matrix = withMeta.find((m) => m.id === selectedId) || null
 
@@ -83,62 +108,20 @@ export default function ConsultView({ matrices, onUpdateMeta }) {
     [matrix],
   )
 
-  const handleStackTag = () => {
-    const current = matrix._meta.stack
-    const value = prompt('Tapis effectif (en bb) :', current != null ? String(current) : '')
-    if (value === null) return
-    const n = Number(value.replace(',', '.'))
-    if (value.trim() !== '' && Number.isFinite(n)) onUpdateMeta(matrix.id, { stack: n })
-    else if (value.trim() === '') onUpdateMeta(matrix.id, { stack: null })
-  }
-
   if (!matrices.length) {
     return <p className="hint">Aucune range enregistrée. Créez-en dans l'onglet « Éditeur » ou importez un JSON.</p>
   }
 
   return (
     <div className="consult">
-      {/* Liste des ranges à gauche, avec filtres */}
+      {/* Liste des ranges à gauche, avec filtres à cases */}
       <aside className="consult-list">
         <h2>Ranges</h2>
 
         <div className="consult-filters">
-          <label>
-            Type
-            <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-              <option value={ALL}>Tous</option>
-              {RANGE_TYPES.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Position
-            <select value={filterPosition} onChange={(e) => setFilterPosition(e.target.value)}>
-              <option value={ALL}>Toutes</option>
-              {POSITIONS.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Tapis effectif
-            <select value={filterStack} onChange={(e) => setFilterStack(e.target.value)}>
-              <option value={ALL}>Tous</option>
-              {availableStacks.map((s) => (
-                <option key={s} value={s}>{s} bb</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Style
-            <select value={filterStyle} onChange={(e) => setFilterStyle(e.target.value)}>
-              <option value={ALL}>Tous</option>
-              {RANGE_STYLES.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </label>
+          <ChipGroup label="Position" options={POSITIONS} value={filterPosition} onChange={setFilterPosition} />
+          <ChipGroup label="Joueurs" options={PLAYER_COUNTS} value={filterPlayers} onChange={setFilterPlayers} />
+          <ChipGroup label="Tapis effectif" options={STACK_CHIP_OPTIONS} value={filterStack} onChange={setFilterStack} />
         </div>
 
         {filtered.length === 0 ? (
@@ -185,43 +168,24 @@ export default function ConsultView({ matrices, onUpdateMeta }) {
             </div>
 
             <div className="consult-tags">
-              <label>
-                Type
-                <select
-                  value={matrix._meta.type}
-                  onChange={(e) => onUpdateMeta(matrix.id, { type: e.target.value })}
-                >
-                  {RANGE_TYPES.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Position
-                <select
-                  value={matrix._meta.position ?? ''}
-                  onChange={(e) => onUpdateMeta(matrix.id, { position: e.target.value || null })}
-                >
-                  <option value="">—</option>
-                  {POSITIONS.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </label>
-              <button className="btn-mini" onClick={handleStackTag} title="Modifier le tapis effectif">
-                Tapis : {matrix._meta.stack != null ? `${matrix._meta.stack} bb` : '—'}
-              </button>
-              <label>
-                Style
-                <select
-                  value={matrix._meta.style}
-                  onChange={(e) => onUpdateMeta(matrix.id, { style: e.target.value })}
-                >
-                  {RANGE_STYLES.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </label>
+              <ChipGroup
+                label="Position"
+                options={POSITIONS}
+                value={matrix._meta.position ?? ALL}
+                onChange={(v) => onUpdateMeta(matrix.id, { position: v === ALL ? null : v })}
+              />
+              <ChipGroup
+                label="Joueurs"
+                options={PLAYER_COUNTS}
+                value={matrix._meta.players ?? ALL}
+                onChange={(v) => onUpdateMeta(matrix.id, { players: v === ALL ? null : v })}
+              />
+              <ChipGroup
+                label="Tapis effectif"
+                options={STACK_CHIP_OPTIONS}
+                value={matrix._meta.stack != null ? String(matrix._meta.stack) : ALL}
+                onChange={(v) => onUpdateMeta(matrix.id, { stack: v === ALL ? null : Number(v) })}
+              />
             </div>
 
             <div className="grid-wrap consult-grid">
