@@ -1,0 +1,1783 @@
+{
+  "schema_version": "1.0.0",
+  "pack_id": "crush-poker-situations-starter-v1",
+  "title": "Crush Poker — Situations complètes",
+  "description": "Pack de démonstration d'un trainer de mains à embranchements. Les notes postflop sont pédagogiques et doivent être validées par solver avant d'être affichées comme GTO exact.",
+  "feedback_mode": "end_of_hand",
+  "grading": {
+    "excellent": {
+      "score": 2,
+      "meaning": "Action cible / optimale ou appartenant clairement au mix optimal."
+    },
+    "bon": {
+      "score": 1,
+      "meaning": "Action défendable, EV proche ou exploitable, mais pas la branche cible."
+    },
+    "mauvais": {
+      "score": 0,
+      "meaning": "Erreur claire ou action nettement dominée dans le scénario."
+    }
+  },
+  "scenarios": [
+    {
+      "id": "S001",
+      "title": "SB 15 BB — QJs, construire sans surjouer",
+      "format": {
+        "game": "Expresso Nitro",
+        "players": 3,
+        "buy_in_eur": 5
+      },
+      "tags": [
+        "3max",
+        "SB",
+        "15bb",
+        "open",
+        "top-pair",
+        "value-control"
+      ],
+      "difficulty": "intermediaire",
+      "validation": {
+        "basis": "Préflop aligné sur la range utilisateur connue; postflop coach-curated",
+        "solver_verified": false,
+        "source_note": "QJs à 15 BB SB après fold BTN: limp et raise 2.5x appartiennent au mix utilisateur; shove n'est pas la branche cible."
+      },
+      "start_node_id": "S001_PF",
+      "nodes": [
+        {
+          "id": "S001_PF",
+          "street": "preflop",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Qs",
+              "Js"
+            ],
+            "pot_bb": 1.5,
+            "effective_stack_bb": 15,
+            "board": [],
+            "villain_action": "BTN fold",
+            "history": [
+              "BTN fold"
+            ]
+          },
+          "prompt": "BTN fold. Tu es SB 15 BB avec Q♠J♠. Que fais-tu ?",
+          "options": [
+            {
+              "id": "fold",
+              "label": "Fold",
+              "action_type": "fold",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Main trop forte pour abandonner dans ce spot.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "hero_fold",
+                "result_text": "Main terminée préflop."
+              }
+            },
+            {
+              "id": "limp",
+              "label": "Limp",
+              "action_type": "limp",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Le limp fait partie de la stratégie mixée et protège une range large.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_F_L",
+              "transition": {
+                "villain_response": "BB check",
+                "next_card": "Qh 7c 3s",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "raise25",
+              "label": "Raise 2.5 BB",
+              "action_type": "raise",
+              "amount_bb": 2.5,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Le raise 2.5x fait partie de la stratégie mixée et prend de la value/initiative.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_F_R",
+              "transition": {
+                "villain_response": "BB call",
+                "next_card": "Qh 7c 3s",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove 15 BB",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu brûles de la jouabilité et fais surtout continuer une range plus forte.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "training_stop",
+                "result_text": "Action notée; branche arrêtée dans ce pack de démo."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S001_F_L",
+          "street": "flop",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Qs",
+              "Js"
+            ],
+            "pot_bb": 2.0,
+            "effective_stack_bb": 14,
+            "board": [
+              "Qh",
+              "7c",
+              "3s"
+            ],
+            "villain_action": "BB check",
+            "history": [
+              "SB limp",
+              "BB check",
+              "Flop Qh 7c 3s",
+              "BB check"
+            ]
+          },
+          "prompt": "Pot limpé. BB check. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Contrôle possible, mais tu rates de la value contre beaucoup de moins bien.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_T_LC",
+              "transition": {
+                "villain_response": "BB check",
+                "next_card": "9d",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "bet1",
+              "label": "Bet 1 BB",
+              "action_type": "bet",
+              "amount_bb": 1.0,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Petit bet très efficace sur board sec: value large et coût faible.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_T_LB",
+              "transition": {
+                "villain_response": "BB call",
+                "next_card": "9d",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "bet2",
+              "label": "Bet 2 BB",
+              "action_type": "bet",
+              "amount_bb": 2.0,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Value possible mais sizing plus polarisant que nécessaire.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_T_LB",
+              "transition": {
+                "villain_response": "BB call",
+                "next_card": "9d",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Surprotection massive: tu fais folder trop de moins bien.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overplay",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S001_T_LC",
+          "street": "turn",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Qs",
+              "Js"
+            ],
+            "pot_bb": 2.0,
+            "effective_stack_bb": 14,
+            "board": [
+              "Qh",
+              "7c",
+              "3s",
+              "9d"
+            ],
+            "villain_action": "BB check",
+            "history": [
+              "Flop check/check",
+              "Turn 9d",
+              "BB check"
+            ]
+          },
+          "prompt": "Après check flop, BB check encore turn. Action ?",
+          "options": [
+            {
+              "id": "bet1",
+              "label": "Bet 1 BB",
+              "action_type": "bet",
+              "amount_bb": 1.0,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Value/protection claire après double check adverse.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_R",
+              "transition": {
+                "villain_response": "BB call puis bet 2.5 BB river",
+                "next_card": "4c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "check",
+              "label": "Check",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Possible, mais tu laisses de la value sur table.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_R",
+              "transition": {
+                "villain_response": "BB bet 2.5 BB river",
+                "next_card": "4c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Sizing disproportionné avec une main de value moyenne.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overplay",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S001_T_LB",
+          "street": "turn",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Qs",
+              "Js"
+            ],
+            "pot_bb": 4.0,
+            "effective_stack_bb": 13,
+            "board": [
+              "Qh",
+              "7c",
+              "3s",
+              "9d"
+            ],
+            "villain_action": "BB check",
+            "history": [
+              "Flop bet",
+              "BB call",
+              "Turn 9d",
+              "BB check"
+            ]
+          },
+          "prompt": "BB check turn. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Très bon contrôle avec top paire kicker moyen.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_R",
+              "transition": {
+                "villain_response": "BB bet 2.5 BB river",
+                "next_card": "4c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "bet2",
+              "label": "Bet 2 BB",
+              "action_type": "bet",
+              "amount_bb": 2.0,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Deuxième barrel raisonnable mais plus thin.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_R_B",
+              "transition": {
+                "villain_response": "BB call",
+                "next_card": "4c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu isoles trop souvent contre mieux.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overplay",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S001_R_B",
+          "street": "river",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Qs",
+              "Js"
+            ],
+            "pot_bb": 8.0,
+            "effective_stack_bb": 11,
+            "board": [
+              "Qh",
+              "7c",
+              "3s",
+              "9d",
+              "4c"
+            ],
+            "villain_action": "BB check",
+            "history": [
+              "Turn bet",
+              "BB call",
+              "River 4c",
+              "BB check"
+            ]
+          },
+          "prompt": "BB check river. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check back",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Showdown value suffisante; tu évites de te value-cut.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "showdown",
+                "result_text": "Showdown. Revue complète."
+              }
+            },
+            {
+              "id": "bet2",
+              "label": "Bet 2 BB",
+              "action_type": "bet",
+              "amount_bb": 2.0,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Thin value possible contre certains profils.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "villain_response",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Trop polarisé avec une main qui ne veut pas être payée par mieux.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overvalue",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S001_R",
+          "street": "river",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Qs",
+              "Js"
+            ],
+            "pot_bb": 4.0,
+            "effective_stack_bb": 13,
+            "board": [
+              "Qh",
+              "7c",
+              "3s",
+              "9d",
+              "4c"
+            ],
+            "villain_action": "BB bet 2.5 BB",
+            "history": [
+              "River 4c",
+              "BB bet 2.5 BB"
+            ]
+          },
+          "prompt": "BB mise 2.5 BB river. Action ?",
+          "options": [
+            {
+              "id": "fold",
+              "label": "Fold",
+              "action_type": "fold",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Top paire est trop haute dans ta range pour folder face à ce sizing.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "hero_fold",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "call",
+              "label": "Call",
+              "action_type": "call",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Bluffcatch/value-call standard.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "showdown",
+                "result_text": "BB montre Q8o. Tu gagnes."
+              }
+            },
+            {
+              "id": "raise",
+              "label": "Raise 7 BB",
+              "action_type": "raise",
+              "amount_bb": 7.0,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu transformes inutilement une bonne main de call en raise thin.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "villain_response",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S001_F_R",
+          "street": "flop",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Qs",
+              "Js"
+            ],
+            "pot_bb": 5.0,
+            "effective_stack_bb": 12.5,
+            "board": [
+              "Qh",
+              "7c",
+              "3s"
+            ],
+            "villain_action": "BB check",
+            "history": [
+              "SB raise 2.5 BB",
+              "BB call",
+              "Flop Qh 7c 3s",
+              "BB check"
+            ]
+          },
+          "prompt": "Pot raise. BB check. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Possible pour protéger le check-back, mais tu as beaucoup de value.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_T_R",
+              "transition": {
+                "villain_response": "BB check",
+                "next_card": "9d",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "bet17",
+              "label": "Bet 1.7 BB (~1/3)",
+              "action_type": "bet",
+              "amount_bb": 1.7,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Petit c-bet de value très naturel sur board dry.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_T_R",
+              "transition": {
+                "villain_response": "BB call",
+                "next_card": "9d",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "bet4",
+              "label": "Bet 4 BB",
+              "action_type": "bet",
+              "amount_bb": 4.0,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Encore profitable, mais trop gros pour la structure du board.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_T_R",
+              "transition": {
+                "villain_response": "BB call",
+                "next_card": "9d",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu fais trop folder la partie dominée.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overplay",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S001_T_R",
+          "street": "turn",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Qs",
+              "Js"
+            ],
+            "pot_bb": 8.4,
+            "effective_stack_bb": 10.8,
+            "board": [
+              "Qh",
+              "7c",
+              "3s",
+              "9d"
+            ],
+            "villain_action": "BB check",
+            "history": [
+              "Flop c-bet",
+              "BB call",
+              "Turn 9d",
+              "BB check"
+            ]
+          },
+          "prompt": "BB check turn. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Contrôle de pot et protection de range.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_R",
+              "transition": {
+                "villain_response": "BB bet 2.5 BB river",
+                "next_card": "4c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "bet4",
+              "label": "Bet 4 BB",
+              "action_type": "bet",
+              "amount_bb": 4.0,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Value possible mais plus thin.",
+              "ev_loss_bb": null,
+              "next_node_id": "S001_R_B",
+              "transition": {
+                "villain_response": "BB call",
+                "next_card": "4c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "La main ne veut pas mettre tout le stack ici.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overplay",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S002",
+      "title": "BTN 15 BB — A2o, savoir folder malgré l'As",
+      "format": {
+        "game": "Expresso Nitro",
+        "players": 3,
+        "buy_in_eur": 5
+      },
+      "tags": [
+        "3max",
+        "BTN",
+        "15bb",
+        "open",
+        "range-memory"
+      ],
+      "difficulty": "debutant",
+      "validation": {
+        "basis": "Range utilisateur fournie",
+        "solver_verified": false,
+        "source_note": "Dans la range utilisateur BTN 15 BB, A2o est fold."
+      },
+      "start_node_id": "S002_PF",
+      "nodes": [
+        {
+          "id": "S002_PF",
+          "street": "preflop",
+          "state": {
+            "hero_position": "BTN",
+            "hero_hand": [
+              "Ah",
+              "2d"
+            ],
+            "pot_bb": 1.5,
+            "effective_stack_bb": 15,
+            "board": [],
+            "villain_action": null,
+            "history": []
+          },
+          "prompt": "3 joueurs, BTN 15 BB, pot non ouvert. A♥2♦. Action ?",
+          "options": [
+            {
+              "id": "fold",
+              "label": "Fold",
+              "action_type": "fold",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Conforme à ta range BTN 15 BB.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "hero_fold",
+                "result_text": "Main terminée préflop."
+              }
+            },
+            {
+              "id": "raise2",
+              "label": "Raise 2 BB",
+              "action_type": "raise",
+              "amount_bb": 2.0,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Hors de ta range cible dans ce spot.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "training_stop",
+                "result_text": "Action notée."
+              }
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Surinvestissement hors de ta range cible.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "training_stop",
+                "result_text": "Action notée."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S003",
+      "title": "Deuxième paire sur flop monotone — ne pas surprotéger",
+      "format": {
+        "game": "Expresso Nitro",
+        "players": 3,
+        "buy_in_eur": 5
+      },
+      "tags": [
+        "postflop",
+        "monotone",
+        "second-pair",
+        "pot-control"
+      ],
+      "difficulty": "intermediaire",
+      "validation": {
+        "basis": "Coach-curated pédagogique",
+        "solver_verified": false,
+        "source_note": "Inspiré d'un leak observé: suragression avec équité moyenne."
+      },
+      "start_node_id": "S003_F",
+      "nodes": [
+        {
+          "id": "S003_F",
+          "street": "flop",
+          "state": {
+            "hero_position": "BB",
+            "hero_hand": [
+              "Qh",
+              "6h"
+            ],
+            "pot_bb": 5.0,
+            "effective_stack_bb": 7.2,
+            "board": [
+              "As",
+              "Qs",
+              "3s"
+            ],
+            "villain_action": "SB checks",
+            "history": [
+              "SB raises 2.5 BB",
+              "BB calls",
+              "Flop As Qs 3s",
+              "SB checks"
+            ]
+          },
+          "prompt": "SB check. Tu as deuxième paire sans pique. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Tu gardes les mains moins bonnes, évites de t'isoler contre Ax/flushes.",
+              "ev_loss_bb": null,
+              "next_node_id": "S003_T",
+              "transition": {
+                "villain_response": "SB bets 1.5 BB",
+                "next_card": "2d",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "bet17",
+              "label": "Bet 1.7 BB",
+              "action_type": "bet",
+              "amount_bb": 1.7,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Petit stab possible, mais la value/protection est limitée.",
+              "ev_loss_bb": null,
+              "next_node_id": "S003_TB",
+              "transition": {
+                "villain_response": "SB calls",
+                "next_card": "2d",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu fais folder beaucoup de moins bien et continues surtout contre mieux.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overplay",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S003_T",
+          "street": "turn",
+          "state": {
+            "hero_position": "BB",
+            "hero_hand": [
+              "Qh",
+              "6h"
+            ],
+            "pot_bb": 5.0,
+            "effective_stack_bb": 7.2,
+            "board": [
+              "As",
+              "Qs",
+              "3s",
+              "2d"
+            ],
+            "villain_action": "SB bet 1.5 BB",
+            "history": [
+              "Flop check/check",
+              "Turn 2d",
+              "SB bet 1.5 BB"
+            ]
+          },
+          "prompt": "Face à 1.5 BB turn, action ?",
+          "options": [
+            {
+              "id": "fold",
+              "label": "Fold",
+              "action_type": "fold",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Exploit possible contre profil très underbluff, mais souvent trop tight.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "hero_fold",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "call",
+              "label": "Call",
+              "action_type": "call",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Tu gardes les bluffs et les Qx moins bons.",
+              "ev_loss_bb": null,
+              "next_node_id": "S003_R",
+              "transition": {
+                "villain_response": "SB checks",
+                "next_card": "8c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "raise",
+              "label": "Raise 5 BB",
+              "action_type": "raise",
+              "amount_bb": 5.0,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu transformes une main de showdown en raise sans cible claire.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overplay",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S003_TB",
+          "street": "turn",
+          "state": {
+            "hero_position": "BB",
+            "hero_hand": [
+              "Qh",
+              "6h"
+            ],
+            "pot_bb": 8.4,
+            "effective_stack_bb": 5.5,
+            "board": [
+              "As",
+              "Qs",
+              "3s",
+              "2d"
+            ],
+            "villain_action": "SB checks",
+            "history": [
+              "Flop bet 1.7 BB",
+              "SB calls",
+              "Turn 2d",
+              "SB checks"
+            ]
+          },
+          "prompt": "Après ton stab flop payé, SB check turn. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Tu prends le showdown et évites un deuxième barrel trop thin.",
+              "ev_loss_bb": null,
+              "next_node_id": "S003_R",
+              "transition": {
+                "villain_response": "SB checks",
+                "next_card": "8c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "bet2",
+              "label": "Bet 2 BB",
+              "action_type": "bet",
+              "amount_bb": 2.0,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Trop peu de moins bien te paient.",
+              "ev_loss_bb": null,
+              "next_node_id": "S003_R",
+              "transition": {
+                "villain_response": "SB calls",
+                "next_card": "8c",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Surjeu clair.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overplay",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S003_R",
+          "street": "river",
+          "state": {
+            "hero_position": "BB",
+            "hero_hand": [
+              "Qh",
+              "6h"
+            ],
+            "pot_bb": 8.0,
+            "effective_stack_bb": 5.7,
+            "board": [
+              "As",
+              "Qs",
+              "3s",
+              "2d",
+              "8c"
+            ],
+            "villain_action": "SB checks",
+            "history": [
+              "River 8c",
+              "SB checks"
+            ]
+          },
+          "prompt": "SB check river. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check back",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Showdown value suffisante; aucune raison de transformer en bluff.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "showdown",
+                "result_text": "Showdown."
+              }
+            },
+            {
+              "id": "bet2",
+              "label": "Bet 2 BB",
+              "action_type": "bet",
+              "amount_bb": 2.0,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Value trop thin.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "villain_response",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Polarisation sans bloqueurs pertinents.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "bluff_bad",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S004",
+      "title": "River triple barrel — deuxième paire contre gros sizing",
+      "format": {
+        "game": "Expresso Nitro",
+        "players": 2,
+        "buy_in_eur": 5
+      },
+      "tags": [
+        "HU",
+        "river",
+        "bluffcatch",
+        "population"
+      ],
+      "difficulty": "intermediaire",
+      "validation": {
+        "basis": "Coach-curated exploit pédagogique",
+        "solver_verified": false,
+        "source_note": "Cible le leak de surdéfense river observé sur le sample."
+      },
+      "start_node_id": "S004_R",
+      "nodes": [
+        {
+          "id": "S004_R",
+          "street": "river",
+          "state": {
+            "hero_position": "BB",
+            "hero_hand": [
+              "Qd",
+              "8c"
+            ],
+            "pot_bb": 8.0,
+            "effective_stack_bb": 5.4,
+            "board": [
+              "Ah",
+              "6h",
+              "8c",
+              "3c",
+              "9s"
+            ],
+            "villain_action": "SB shoves 5.4 BB",
+            "history": [
+              "Flop call",
+              "Turn call",
+              "River 9s",
+              "SB shove"
+            ]
+          },
+          "prompt": "Deuxième paire face au troisième barrel all-in. Action ?",
+          "options": [
+            {
+              "id": "fold",
+              "label": "Fold",
+              "action_type": "fold",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Sans read d'overbluff, la population a souvent trop de value sur cette ligne.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "hero_fold",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "call",
+              "label": "Call",
+              "action_type": "call",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu as besoin d'une fréquence de bluff élevée.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "showdown",
+                "result_text": "Vilain montre une main de value."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S005",
+      "title": "River nuts — maximiser la value",
+      "format": {
+        "game": "Expresso Nitro",
+        "players": 2,
+        "buy_in_eur": 5
+      },
+      "tags": [
+        "HU",
+        "river",
+        "nuts",
+        "value"
+      ],
+      "difficulty": "debutant",
+      "validation": {
+        "basis": "Coach-curated pédagogique",
+        "solver_verified": false
+      },
+      "start_node_id": "S005_R",
+      "nodes": [
+        {
+          "id": "S005_R",
+          "street": "river",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Ah",
+              "7h"
+            ],
+            "pot_bb": 9.0,
+            "effective_stack_bb": 4.9,
+            "board": [
+              "3h",
+              "9h",
+              "8c",
+              "5c",
+              "6h"
+            ],
+            "villain_action": "BB bets 2.5 BB",
+            "history": [
+              "River 6h",
+              "BB bet 2.5 BB"
+            ]
+          },
+          "prompt": "Tu as flush max. Action ?",
+          "options": [
+            {
+              "id": "fold",
+              "label": "Fold",
+              "action_type": "fold",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu as une main énorme; fold impossible.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "hero_fold",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "call",
+              "label": "Call",
+              "action_type": "call",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Tu sécurises la value mais laisses de l'argent face aux mains capables de payer.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "showdown",
+                "result_text": "Showdown."
+              }
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Tu maximises la value contre straights, deux paires fortes et petites flushes.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "showdown",
+                "result_text": "Vilain call. Revue complète."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S006",
+      "title": "4-high sans équité — éviter le shove automatique",
+      "format": {
+        "game": "Expresso Nitro",
+        "players": 2,
+        "buy_in_eur": 5
+      },
+      "tags": [
+        "HU",
+        "flop",
+        "bluff-selection",
+        "no-equity"
+      ],
+      "difficulty": "debutant",
+      "validation": {
+        "basis": "Coach-curated pédagogique",
+        "solver_verified": false,
+        "source_note": "Inspiré d'un shove flop observé avec 4-high sans équité suffisante."
+      },
+      "start_node_id": "S006_F",
+      "nodes": [
+        {
+          "id": "S006_F",
+          "street": "flop",
+          "state": {
+            "hero_position": "BB",
+            "hero_hand": [
+              "4h",
+              "2h"
+            ],
+            "pot_bb": 4.0,
+            "effective_stack_bb": 5.5,
+            "board": [
+              "7c",
+              "Jd",
+              "8d"
+            ],
+            "villain_action": "SB checks",
+            "history": [
+              "SB minraise",
+              "BB call",
+              "Flop 7c Jd 8d",
+              "SB check"
+            ]
+          },
+          "prompt": "SB check, tu as 4-high sans draw sérieux. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Tu évites de brûler ton stack sans équité ni bloqueurs utiles.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "demo_end",
+                "result_text": "Branche arrêtée après la décision cible."
+              }
+            },
+            {
+              "id": "bet1",
+              "label": "Bet 1 BB",
+              "action_type": "bet",
+              "amount_bb": 1.0,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Petit stab exploitable si vilain overfold au check, mais dépend du profil.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "villain_response",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Risque énorme pour une main qui réalise très mal son équité lorsqu'elle est payée.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "overbluff",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S007",
+      "title": "Turn draw — choisir l'agression avec de vrais outs",
+      "format": {
+        "game": "Expresso Nitro",
+        "players": 2,
+        "buy_in_eur": 5
+      },
+      "tags": [
+        "HU",
+        "turn",
+        "semi-bluff",
+        "draw"
+      ],
+      "difficulty": "intermediaire",
+      "validation": {
+        "basis": "Coach-curated pédagogique",
+        "solver_verified": false
+      },
+      "start_node_id": "S007_T",
+      "nodes": [
+        {
+          "id": "S007_T",
+          "street": "turn",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Tc",
+              "6c"
+            ],
+            "pot_bb": 4.0,
+            "effective_stack_bb": 7.0,
+            "board": [
+              "2c",
+              "Js",
+              "7h",
+              "3c"
+            ],
+            "villain_action": "BB bets 1 BB",
+            "history": [
+              "Pot limpé",
+              "Flop check/check",
+              "Turn 3c",
+              "BB bet 1 BB"
+            ]
+          },
+          "prompt": "Tu as tirage couleur. Action ?",
+          "options": [
+            {
+              "id": "fold",
+              "label": "Fold",
+              "action_type": "fold",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu as trop d'équité pour abandonner face à ce sizing.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "hero_fold",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "call",
+              "label": "Call",
+              "action_type": "call",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Tu réalises ton équité à bon prix et gardes les bluffs adverses.",
+              "ev_loss_bb": null,
+              "next_node_id": "S007_R",
+              "transition": {
+                "villain_response": "BB bets 1 BB river",
+                "next_card": "2h",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "raise4",
+              "label": "Raise 4 BB",
+              "action_type": "raise",
+              "amount_bb": 4.0,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Semi-bluff défendable grâce à l'équité et à la fold equity.",
+              "ev_loss_bb": null,
+              "next_node_id": "S007_R",
+              "transition": {
+                "villain_response": "BB calls puis bets 1 BB river",
+                "next_card": "2h",
+                "note": null
+              },
+              "terminal": null
+            },
+            {
+              "id": "shove",
+              "label": "Shove",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Peut fonctionner contre profil capable de bet/fold beaucoup, mais trop polarisé comme standard.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "villain_decides",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        },
+        {
+          "id": "S007_R",
+          "street": "river",
+          "state": {
+            "hero_position": "SB",
+            "hero_hand": [
+              "Tc",
+              "6c"
+            ],
+            "pot_bb": 6.0,
+            "effective_stack_bb": 6.0,
+            "board": [
+              "2c",
+              "Js",
+              "7h",
+              "3c",
+              "2h"
+            ],
+            "villain_action": "BB bets 1 BB",
+            "history": [
+              "Turn call",
+              "River 2h",
+              "BB bet 1 BB"
+            ]
+          },
+          "prompt": "Tirage manqué. Face à 1 BB river, action ?",
+          "options": [
+            {
+              "id": "fold",
+              "label": "Fold",
+              "action_type": "fold",
+              "amount_bb": null,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "T-high sans bloqueur majeur n'a pas besoin de forcer un bluff.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "hero_fold",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "call",
+              "label": "Call",
+              "action_type": "call",
+              "amount_bb": null,
+              "grade": "mauvais",
+              "score": 0,
+              "is_optimal": false,
+              "feedback": "Tu bats trop peu de mains de value et même certains bluffs te dominent.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "showdown",
+                "result_text": "Main terminée."
+              }
+            },
+            {
+              "id": "shove",
+              "label": "Shove bluff",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Possible seulement si tu identifies une range de bet/fold large.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "villain_decides",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S008",
+      "title": "Deux paires — value sans ignorer les draws complétés",
+      "format": {
+        "game": "Expresso Nitro",
+        "players": 2,
+        "buy_in_eur": 5
+      },
+      "tags": [
+        "HU",
+        "river",
+        "two-pair",
+        "thin-value"
+      ],
+      "difficulty": "intermediaire",
+      "validation": {
+        "basis": "Coach-curated pédagogique",
+        "solver_verified": false
+      },
+      "start_node_id": "S008_R",
+      "nodes": [
+        {
+          "id": "S008_R",
+          "street": "river",
+          "state": {
+            "hero_position": "BB",
+            "hero_hand": [
+              "Td",
+              "4d"
+            ],
+            "pot_bb": 10.0,
+            "effective_stack_bb": 5.0,
+            "board": [
+              "4s",
+              "3h",
+              "Tc",
+              "5d",
+              "Jc"
+            ],
+            "villain_action": "SB checks",
+            "history": [
+              "Flop bet/call",
+              "Turn bet/call",
+              "River Jc",
+              "SB check"
+            ]
+          },
+          "prompt": "Tu as deux paires T4 sur un board où 67 a rentré turn. Action ?",
+          "options": [
+            {
+              "id": "check",
+              "label": "Check back",
+              "action_type": "check",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Tu sécurises le showdown et évites le value-cut, mais peux rater de la value.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "showdown",
+                "result_text": "Showdown."
+              }
+            },
+            {
+              "id": "bet25",
+              "label": "Bet 2.5 BB",
+              "action_type": "bet",
+              "amount_bb": 2.5,
+              "grade": "excellent",
+              "score": 2,
+              "is_optimal": true,
+              "feedback": "Sizing de value raisonnable qui garde des calls moins bons sans te commit totalement.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "villain_response",
+                "result_text": "Main terminée après décision adverse."
+              }
+            },
+            {
+              "id": "shove",
+              "label": "Shove 5 BB",
+              "action_type": "shove",
+              "amount_bb": null,
+              "grade": "bon",
+              "score": 1,
+              "is_optimal": false,
+              "feedback": "Peut être exploitativement bon contre calling-station, mais ambitieux comme standard.",
+              "ev_loss_bb": null,
+              "next_node_id": null,
+              "transition": null,
+              "terminal": {
+                "reason": "villain_response",
+                "result_text": "Main terminée."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import QuizDrill from './training/QuizDrill.jsx'
 import ReversedDrill from './training/ReversedDrill.jsx'
 import BuildDrill from './training/BuildDrill.jsx'
 import HeatmapPanel from './training/HeatmapPanel.jsx'
+import HandTrainerDrill from './training/handTrainer/HandTrainerDrill.jsx'
 
 const MODES = [
   { id: 'classic', name: 'Classique', desc: 'Question aléatoire, sans contrainte de temps.' },
@@ -12,6 +13,11 @@ const MODES = [
   { id: 'reversed', name: 'Mode inversé', desc: 'Une action est annoncée : retrouvez toutes les mains concernées.' },
   { id: 'build', name: 'Construis la range', desc: 'Reconstruisez de mémoire la range complète du spot.' },
   { id: 'heatmap', name: 'Heatmap (suivi)', desc: 'Visualisez vos zones faibles par spot.' },
+  {
+    id: 'situations',
+    name: 'Situations complètes',
+    desc: 'Jouez une main décision par décision (préflop → river), avec débrief complet à la fin.',
+  },
 ]
 
 /**
@@ -45,6 +51,7 @@ export default function TrainingView({ matrices }) {
       {mode === 'reversed' && <ReversedDrill matrices={matrices} />}
       {mode === 'build' && <BuildDrill matrices={matrices} />}
       {mode === 'heatmap' && <HeatmapPanel matrices={matrices} />}
+      {mode === 'situations' && <HandTrainerDrill />}
     </div>
   )
 }
