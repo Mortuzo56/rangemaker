@@ -46,31 +46,50 @@ export default function App() {
     saveMatrices(matrices)
   }, [matrices])
 
-  // Pré-remplissage au tout premier lancement (ex. installation PWA sur un
-  // nouvel appareil) : si aucune matrice n'a encore été enregistrée et que
-  // le pré-remplissage n'a jamais été tenté, on charge le jeu de ranges
-  // fourni avec l'appli (public/seed-matrices.json). Ne s'exécute qu'une
-  // seule fois : une fois les ranges supprimées volontairement, elles ne
-  // reviennent pas toutes seules.
+  // Pré-remplissage / mise à jour du jeu de ranges fourni avec l'appli
+  // (public/seed-matrices.json). On mémorise (par nom) les ranges déjà
+  // proposées : à chaque lancement, seules celles qu'on n'a encore jamais
+  // ajoutées sont injectées. Une range du seed volontairement supprimée par
+  // l'utilisateur ne revient donc pas toute seule, mais une toute nouvelle
+  // range ajoutée au seed plus tard (ex. mise à jour de l'appli) atteint bien
+  // les utilisateurs qui avaient déjà des ranges enregistrées.
   useEffect(() => {
-    if (localStorage.getItem('rangemaker.seeded')) return
-    localStorage.setItem('rangemaker.seeded', '1')
-    if (matrices.length > 0) return
+    const SEEDED_NAMES_KEY = 'rangemaker.seededNames'
     fetch(`${import.meta.env.BASE_URL}seed-matrices.json`)
       .then((r) => (r.ok ? r.json() : null))
       .then((list) => {
         if (!Array.isArray(list) || !list.length) return
-        const now = Date.now()
-        const seeded = list.map((m, i) => ({
-          id: makeId(),
-          name: m.name,
-          actions: m.actions,
-          cells: m.cells,
-          meta: m.meta,
-          createdAt: now + i,
-          updatedAt: now + i,
-        }))
-        setMatrices((prev) => (prev.length ? prev : seeded))
+        const seededNames = new Set(JSON.parse(localStorage.getItem(SEEDED_NAMES_KEY) || '[]'))
+        // Migration depuis l'ancien système (un seul indicateur "déjà semé
+        // une fois") : sans historique par nom, on considère que tout ce qui
+        // n'est pas une range "bb-hu" (introduites avec ce nouveau système) a
+        // déjà été proposé, pour ne pas ressusciter d'anciennes ranges
+        // supprimées volontairement.
+        if (!localStorage.getItem(SEEDED_NAMES_KEY) && localStorage.getItem('rangemaker.seeded')) {
+          list.forEach((m) => {
+            if (m.meta?.position !== 'bb-hu') seededNames.add(m.name)
+          })
+        }
+        const candidates = list.filter((m) => !seededNames.has(m.name))
+        if (!candidates.length) return
+        setMatrices((prev) => {
+          const existingNames = new Set(prev.map((m) => m.name))
+          const now = Date.now()
+          const toAdd = candidates
+            .filter((m) => !existingNames.has(m.name))
+            .map((m, i) => ({
+              id: makeId(),
+              name: m.name,
+              actions: m.actions,
+              cells: m.cells,
+              meta: m.meta,
+              createdAt: now + i,
+              updatedAt: now + i,
+            }))
+          return toAdd.length ? [...prev, ...toAdd] : prev
+        })
+        candidates.forEach((m) => seededNames.add(m.name))
+        localStorage.setItem(SEEDED_NAMES_KEY, JSON.stringify([...seededNames]))
       })
       .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
