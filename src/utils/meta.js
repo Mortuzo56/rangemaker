@@ -5,13 +5,16 @@
 // sinon on les déduit du nom de la matrice pour rester compatible avec les
 // ranges déjà enregistrées ou importées avant l'ajout de cette fonctionnalité.
 
-// Positions couvertes par les charts push/fold de l'appli : les 2 opens
-// (BTN, SB) et les 3 réactions possibles de la BB (vs SB en 3-max, vs BTN en
-// 3-max, vs SB en Heads-Up — cas nommé « BB HU » pour éviter toute confusion
-// avec « BB vs SB »).
+// Positions couvertes par les charts push/fold de l'appli : les opens
+// (BTN et SB en 3-max, SB HU en Heads-Up) et les 3 réactions possibles de la
+// BB (vs SB en 3-max, vs BTN en 3-max, vs SB en Heads-Up — cas nommé « BB HU »
+// pour éviter toute confusion avec « BB vs SB »). Le suffixe « HU » distingue
+// systématiquement la variante Heads-Up de la variante 3-max d'une même
+// position, plutôt que de compter uniquement sur la case « Joueurs ».
 export const POSITIONS = [
   { id: 'btn', name: 'BTN' },
   { id: 'sb', name: 'SB' },
+  { id: 'sb-hu', name: 'SB HU' },
   { id: 'bb-vs-sb', name: 'BB vs SB' },
   { id: 'bb-vs-btn', name: 'BB vs BTN' },
   { id: 'bb-hu', name: 'BB HU' },
@@ -48,7 +51,7 @@ export function inferMeta(name = '') {
   else if (/\bbb\b.*\bvs\b.*\bbtn\b/.test(lower)) position = 'bb-vs-btn'
   else if (/\bbb\b/.test(lower)) position = isHu ? 'bb-hu' : null
   else if (/\bbtn\b/.test(lower)) position = 'btn'
-  else if (/\bsb\b/.test(lower)) position = 'sb'
+  else if (/\bsb\b/.test(lower)) position = isHu ? 'sb-hu' : 'sb'
 
   return { position, players, stack }
 }
@@ -62,4 +65,18 @@ export function getMeta(matrix) {
     players: explicit.players ?? inferred.players,
     stack: explicit.stack ?? inferred.stack,
   }
+}
+
+/**
+ * Corrige les métadonnées explicites enregistrées avant l'ajout de la
+ * position dédiée « SB HU » (elles utilisaient encore position: 'sb' avec
+ * players: 'hu'). Sans cette migration, les ranges taguées avant ce
+ * changement restent invisibles pour la nouvelle case « SB HU ».
+ */
+export function migrateMeta(meta) {
+  if (!meta) return meta
+  if (meta.position === 'sb' && meta.players === 'hu') {
+    return { ...meta, position: 'sb-hu' }
+  }
+  return meta
 }

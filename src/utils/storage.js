@@ -1,4 +1,5 @@
 import { STORAGE_KEY } from '../constants.js'
+import { migrateMeta } from './meta.js'
 
 // --- Persistance des matrices dans localStorage ---------------------------
 // Une matrice enregistrée = { id, name, actions, cells, createdAt, updatedAt }
@@ -9,7 +10,9 @@ export function loadMatrices() {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    if (!Array.isArray(parsed)) return []
+    // Migration : ranges taguées avant l'ajout de la position « SB HU ».
+    return parsed.map((m) => (m.meta ? { ...m, meta: migrateMeta(m.meta) } : m))
   } catch (err) {
     console.error('Lecture localStorage impossible :', err)
     return []

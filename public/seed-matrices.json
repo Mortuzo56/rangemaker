@@ -1044,7 +1044,7 @@
       ]
     },
     "meta": {
-      "position": "sb",
+      "position": "sb-hu",
       "players": "hu",
       "stack": 4
     }
@@ -2098,7 +2098,7 @@
       ]
     },
     "meta": {
-      "position": "sb",
+      "position": "sb-hu",
       "players": "hu",
       "stack": 5
     }
@@ -3248,7 +3248,7 @@
       ]
     },
     "meta": {
-      "position": "sb",
+      "position": "sb-hu",
       "players": "hu",
       "stack": 6
     }
@@ -4378,7 +4378,7 @@
       ]
     },
     "meta": {
-      "position": "sb",
+      "position": "sb-hu",
       "players": "hu",
       "stack": 7
     }
@@ -5520,7 +5520,7 @@
       ]
     },
     "meta": {
-      "position": "sb",
+      "position": "sb-hu",
       "players": "hu",
       "stack": 8
     }
@@ -6642,7 +6642,7 @@
       ]
     },
     "meta": {
-      "position": "sb",
+      "position": "sb-hu",
       "players": "hu",
       "stack": 9
     }
@@ -7768,7 +7768,7 @@
       ]
     },
     "meta": {
-      "position": "sb",
+      "position": "sb-hu",
       "players": "hu",
       "stack": 10
     }
@@ -9106,7 +9106,7 @@
       ]
     },
     "meta": {
-      "position": "sb",
+      "position": "sb-hu",
       "players": "hu",
       "stack": 12
     }

@@ -9,7 +9,7 @@ import SpotMetaPanel from './components/SpotMetaPanel.jsx'
 import { DEFAULT_ACTIONS } from './constants.js'
 import { emptyCells, cellTotal } from './utils/hands.js'
 import { loadMatrices, saveMatrices, makeId } from './utils/storage.js'
-import { getMeta } from './utils/meta.js'
+import { getMeta, migrateMeta } from './utils/meta.js'
 
 const DEFAULT_META = { position: null, players: null, stack: null }
 
@@ -210,7 +210,7 @@ export default function App() {
       name: data.name || 'Import',
       actions: data.actions,
       cells: data.cells,
-      ...(data.meta ? { meta: data.meta } : {}),
+      ...(data.meta ? { meta: migrateMeta(data.meta) } : {}),
       createdAt: now,
       updatedAt: now,
     }

@@ -83,12 +83,13 @@ export default function ConsultView({ matrices, onUpdateMeta }) {
     [withMeta, filterPosition, filterPlayers, filterStack],
   )
 
-  // Dès que les 3 cases nécessaires (position + joueurs + tapis) sont actives,
-  // on affiche directement la range correspondante. Sinon, on retombe sur le
+  // Dès que les cases cochées ne laissent plus qu'une seule range possible,
+  // on l'affiche directement (peu importe combien de catégories — position,
+  // joueurs, tapis — ont servi à y arriver : la position à elle seule suffit
+  // déjà à distinguer par ex. « SB » de « SB HU »). Sinon, on retombe sur le
   // premier résultat filtré si la sélection courante n'en fait plus partie.
   useEffect(() => {
-    const allChosen = filterPosition !== ALL && filterPlayers !== ALL && filterStack !== ALL
-    if (allChosen && filtered.length) {
+    if (filtered.length === 1) {
       setSelectedId(filtered[0].id)
       setSelectedCell(null)
     } else if (!filtered.find((m) => m.id === selectedId)) {
