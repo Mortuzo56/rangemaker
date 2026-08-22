@@ -1,26 +1,36 @@
 :root {
-  --bg: #f6f7fb;
-  --bg-alt: #ecedf5;
+  --bg: #f4f6fa;
+  --bg-alt: #e9edf3;
   --panel: #ffffff;
-  --panel-2: #fbfbfe;
-  --border: #e3e5ee;
-  --border-strong: #d3d6e3;
-  --text: #171a24;
-  --muted: #6b7184;
-  --primary: #4f46e5;
-  --primary-dark: #4338ca;
-  --primary-soft: rgba(79, 70, 229, 0.08);
-  --primary-soft-strong: rgba(79, 70, 229, 0.14);
+  --panel-2: #f7f9fc;
+  --border: #dde3ec;
+  --border-strong: #c7d0de;
+  --text: #10131c;
+  --muted: #667085;
+  /* Accent "Neon Table" : cyan/sarcelle en primaire, magenta en accent fort. */
+  --primary: #0b8f86;
+  --primary-dark: #086f68;
+  --primary-soft: rgba(11, 143, 134, 0.09);
+  --primary-soft-strong: rgba(11, 143, 134, 0.16);
+  --on-primary: #ffffff;
+  --accent: #c81a6c;
+  --accent-dark: #a8145a;
+  --accent-soft: rgba(200, 26, 108, 0.09);
   --danger: #dc2626;
   --danger-soft: rgba(220, 38, 38, 0.09);
-  /* Fonds des cases + libellé (spécifiques au thème clair) */
-  --cell-bg: #f3f4f9;
-  --cell-pair-bg: #eaedf9;
-  --cell-label: #12141c;
+  /* Fonds des cases + libellé (spécifiques au thème clair) — inchangés dans
+     leur mécanique : seule la teinte de fond neutre suit le thème, les
+     couleurs des actions restent celles choisies par l'utilisateur. */
+  --cell-bg: #eef1f6;
+  --cell-pair-bg: #e3e8f0;
+  --cell-label: #10131c;
   --cell-label-shadow: 0 0 2px #fff, 0 0 4px #fff;
   --input-bg: #ffffff;
   --active-bg: var(--primary-soft);
-  --hover-bg: #f0f1f7;
+  --hover-bg: #eef1f6;
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -32,33 +42,37 @@
   --shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.16), 0 4px 12px rgba(16, 24, 40, 0.06);
 }
 
-/* --- Thème sombre --- */
+/* --- Thème sombre : identité "Neon Table" --- */
 :root[data-theme='dark'] {
-  --bg: #0b0d13;
-  --bg-alt: #12141d;
-  --panel: #161922;
-  --panel-2: #1a1e29;
-  --border: #262b38;
-  --border-strong: #333a4b;
-  --text: #edf0f7;
-  --muted: #8a92a6;
-  --primary: #818cf8;
-  --primary-dark: #a5b0fb;
-  --primary-soft: rgba(129, 140, 248, 0.14);
-  --primary-soft-strong: rgba(129, 140, 248, 0.22);
+  --bg: #07080b;
+  --bg-alt: #0d0f15;
+  --panel: #12141c;
+  --panel-2: #161927;
+  --border: #242938;
+  --border-strong: #333b52;
+  --text: #eef1f8;
+  --muted: #7d869c;
+  --primary: #29e0c9;
+  --primary-dark: #6ff0de;
+  --primary-soft: rgba(41, 224, 201, 0.14);
+  --primary-soft-strong: rgba(41, 224, 201, 0.22);
+  --on-primary: #06110f;
+  --accent: #ff4fa3;
+  --accent-dark: #ff7fc0;
+  --accent-soft: rgba(255, 79, 163, 0.14);
   --danger: #f87171;
   --danger-soft: rgba(248, 113, 113, 0.14);
-  --cell-bg: #1a1e29;
-  --cell-pair-bg: #212639;
-  --cell-label: #f5f7fb;
+  --cell-bg: #10131b;
+  --cell-pair-bg: #161c28;
+  --cell-label: #eef1f8;
   --cell-label-shadow: 0 0 2px #000, 0 0 4px #000;
-  --input-bg: #12141d;
+  --input-bg: #0d0f15;
   --active-bg: var(--primary-soft);
-  --hover-bg: #1c2029;
+  --hover-bg: #171a24;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 8px 22px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.55), 0 6px 16px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.6), 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -67,7 +81,7 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
@@ -89,9 +103,15 @@ body {
 }
 .app-header h1 {
   margin: 0;
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 .subtitle {
   color: var(--muted);
@@ -109,25 +129,27 @@ body {
   padding: 4px;
   background: var(--bg-alt);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
 }
 .tab {
   border: none;
   background: none;
   color: var(--muted);
-  padding: 7px 16px;
+  padding: 7px 18px;
   cursor: pointer;
-  font-size: 13.5px;
-  font-weight: 600;
-  border-radius: calc(var(--radius-md) - 4px);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border-radius: var(--radius-pill);
   transition: color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 .tab:hover {
   color: var(--text);
 }
 .tab.active {
-  color: var(--text);
-  background: var(--panel);
+  color: var(--on-primary);
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
   box-shadow: var(--shadow-sm);
 }
 
@@ -151,9 +173,13 @@ body {
   box-shadow: var(--shadow-sm);
 }
 .consult-list h2 {
-  font-size: 15px;
+  font-family: var(--font-display);
+  font-size: 13px;
   margin: 0 0 10px;
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary);
 }
 .consult-list ul {
   list-style: none;
@@ -245,8 +271,9 @@ body {
 }
 .consult-head h2 {
   margin: 0;
-  font-size: 17px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 .legend {
@@ -559,19 +586,22 @@ body {
   padding: 10px 24px;
   font-size: 14.5px;
 }
-/* --- Table de poker ---
+/* --- Table de poker : identité "Neon Table" ---
    Rendu volontairement indépendant du thème clair/sombre de l'appli (une
    table de poker reste sombre, comme sur un vrai tapis) et généralisé pour
-   afficher 2 sièges (Heads-Up) ou 3 sièges (3-max). */
+   afficher 2 sièges (Heads-Up) ou 3 sièges (3-max). Palette alignée sur les
+   accents cyan/magenta du reste du site ; les couleurs des actions
+   elles-mêmes (bandes de la grille, boutons de décision) ne sont pas
+   touchées ici. */
 .table {
   position: relative;
   width: 100%;
   aspect-ratio: 1.7 / 1;
   margin: 6px auto 0;
   border-radius: 50% / 44%;
-  background: radial-gradient(ellipse at center, #171a21 0%, #101217 70%, #0b0c10 100%);
-  border: 1px solid #262a35;
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.55), var(--shadow-lg);
+  background: radial-gradient(ellipse at center, #121a22 0%, #0a0d14 60%, #05060a 100%);
+  border: 1px solid #1c2436;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6), 0 0 70px rgba(41, 224, 201, 0.07), var(--shadow-lg);
 }
 .table::before,
 .table::after {
@@ -581,8 +611,8 @@ body {
   bottom: 18%;
   width: 3px;
   border-radius: var(--radius-pill);
-  background: linear-gradient(180deg, transparent, #d99f2b 45%, #ffcf7a 55%, transparent);
-  opacity: 0.65;
+  background: linear-gradient(180deg, transparent, #29e0c9 45%, #ff4fa3 55%, transparent);
+  opacity: 0.75;
   filter: blur(1px);
 }
 .table::before {
@@ -604,7 +634,7 @@ body {
 .table-community-slot {
   flex: 1 1 0;
   aspect-ratio: 5 / 7;
-  border: 1.5px dashed #333949;
+  border: 1.5px dashed rgba(41, 224, 201, 0.3);
   border-radius: 4px;
 }
 .seat {
@@ -652,8 +682,8 @@ body {
   gap: 8px;
 }
 .pinfo {
-  background: rgba(6, 7, 10, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(6, 8, 12, 0.85);
+  border: 1px solid rgba(41, 224, 201, 0.16);
   color: #f2f4f8;
   border-radius: var(--radius-sm);
   padding: 5px 10px;
@@ -661,6 +691,7 @@ body {
   min-width: 96px;
 }
 .pname {
+  font-family: var(--font-display);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -670,7 +701,7 @@ body {
   gap: 6px;
 }
 .hero-name {
-  color: #ffdd8a;
+  color: #5eead4;
 }
 .dealer {
   display: inline-flex;
@@ -679,11 +710,11 @@ body {
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background: #d7dbe4;
-  color: #14161c;
+  background: #eafaf7;
+  color: #06110f;
   font-size: 9px;
   font-weight: 800;
-  border: 1px solid #90949e;
+  border: 1px solid #29e0c9;
 }
 .seat-folded {
   opacity: 0.45;
@@ -694,8 +725,8 @@ body {
   justify-content: center;
   padding: 1px 7px;
   border-radius: var(--radius-pill);
-  background: rgba(220, 38, 38, 0.18);
-  color: #f87171;
+  background: rgba(255, 79, 163, 0.16);
+  color: #ff8fc4;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.03em;
@@ -704,7 +735,7 @@ body {
 .pstack {
   font-size: 12.5px;
   font-weight: 700;
-  color: #5fd98a;
+  color: #4be3a6;
 }
 .pcards {
   display: flex;
@@ -714,8 +745,8 @@ body {
   width: 26px;
   height: 36px;
   border-radius: 4px;
-  background: #1b1e26;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: repeating-linear-gradient(45deg, #141826 0 6px, #1a1f30 6px 12px);
+  border: 1px solid rgba(41, 224, 201, 0.3);
   box-shadow: var(--shadow-sm);
 }
 .pcards .pcard.back:first-child {
@@ -733,7 +764,7 @@ body {
   font-weight: 700;
   color: #f2f4f8;
   background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(41, 224, 201, 0.22);
   padding: 2px 9px;
   border-radius: var(--radius-pill);
   transition: all 0.3s ease;
@@ -742,14 +773,14 @@ body {
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffd766, #d99f2b);
+  background: radial-gradient(circle at 30% 30%, #ff9dcc, #ff4fa3);
   border: 1px dashed rgba(255, 255, 255, 0.4);
   flex: none;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 0 6px rgba(255, 79, 163, 0.5);
 }
 .action-bubble {
-  background: #ffdd8a;
-  color: #3a2c00;
+  background: linear-gradient(90deg, #ff4fa3, #ff7fc0);
+  color: #fff5fa;
   font-weight: 800;
   font-size: 13px;
   padding: 4px 12px;
@@ -779,15 +810,17 @@ body {
   z-index: 1;
 }
 .pot-label {
+  font-family: var(--font-display);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #7d8496;
+  letter-spacing: 0.1em;
+  color: #7a8aa0;
 }
 .pot-value {
   font-size: 14px;
   font-weight: 800;
   color: #f2f4f8;
+  text-shadow: 0 0 14px rgba(41, 224, 201, 0.35);
 }
 .hero-cards {
   display: flex;
@@ -826,7 +859,7 @@ body {
   align-items: center;
   justify-content: center;
   color: #171a24;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 0 1px rgba(41, 224, 201, 0.15), var(--shadow-md);
 }
 .card.red {
   color: #dc2626;
@@ -1045,9 +1078,12 @@ body {
 }
 .panel h2 {
   margin: 0 0 12px;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary);
 }
 
 /* --- Panneau "Spot" (métadonnées de la range en cours) --- */
@@ -1171,8 +1207,8 @@ button:focus-visible {
 
 /* --- Boutons --- */
 .btn {
-  border: 1px solid var(--border);
-  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  background: var(--panel-2);
   color: var(--text);
   border-radius: var(--radius-sm);
   padding: 7px 13px;
@@ -1189,14 +1225,13 @@ button:focus-visible {
   transform: translateY(1px);
 }
 .btn-primary {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  border-color: var(--accent);
   color: #fff;
   box-shadow: var(--shadow-sm);
 }
 .btn-primary:hover {
-  background: var(--primary-dark);
-  border-color: var(--primary-dark);
+  filter: brightness(1.08);
   box-shadow: var(--shadow-md);
 }
 .btn:disabled {
@@ -1424,12 +1459,12 @@ button:focus-visible {
   left: 0;
   top: 0;
   bottom: 0;
-  background: linear-gradient(90deg, #16a34a, #ffd766);
+  background: linear-gradient(90deg, #29e0c9, #7dfff0);
   transition: width 0.1s linear;
 }
 .table-timer-low .table-timer-bar,
 .table-timer.table-timer-low {
-  background: linear-gradient(90deg, #dc2626, #ff8a65);
+  background: linear-gradient(90deg, #ff4fa3, #ff8fc4);
 }
 .table-timer-label {
   position: relative;
