@@ -867,8 +867,18 @@ body {
   color: #171a24;
   box-shadow: 0 0 0 1px rgba(41, 224, 201, 0.15), var(--shadow-md);
 }
-.card.red {
+/* Deck 4 couleurs : coeur rouge, carreau bleu, trèfle vert, pique noir. */
+.card.suit-h {
   color: #dc2626;
+}
+.card.suit-d {
+  color: #2563eb;
+}
+.card.suit-c {
+  color: #16a34a;
+}
+.card.suit-s {
+  color: #171a24;
 }
 .card-rank {
   font-size: 24px;

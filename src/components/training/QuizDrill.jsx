@@ -22,21 +22,35 @@ const fmt = (n) => (n == null || Number.isNaN(n) ? '?' : String(Math.round(n * 1
 // Ordre de sièges (sens horaire) et blindes associées. Utilisé pour placer
 // les 2 adversaires autour du héros et calculer les tapis restants.
 const ORDER_3MAX = ['btn', 'sb', 'bb']
-const POS_LABEL_3MAX = { btn: 'BTN', sb: 'SB', bb: 'BB' }
 const BLIND_3MAX = { btn: 0, sb: 0.5, bb: 1 }
 
-// Suits pour l'affichage des cartes.
+// Suits pour l'affichage des cartes (deck 4 couleurs : coeur rouge, carreau
+// bleu, trèfle vert, pique noir).
 const SUIT = { s: '♠', h: '♥', d: '♦', c: '♣' }
-const RED = { h: true, d: true }
+const SUIT_CLASS = { s: 'suit-s', h: 'suit-h', d: 'suit-d', c: 'suit-c' }
+
+// Choix des couleurs affichées, dérivé de la main (déterministe : la même
+// main affiche toujours les mêmes couleurs, pas de flicker au re-rendu) —
+// pour que le deck 4 couleurs se voie vraiment (une seule couleur fixe par
+// catégorie rendrait carreau/trèfle quasi invisibles).
+const SUIT_LETTERS = ['s', 'h', 'd', 'c']
+function suitHash(str) {
+  let h = 0
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0
+  return h
+}
 
 // 2 cartes (rang + suit) à afficher pour une main.
 function handCards(hand) {
   const kind = hand.length === 2 ? 'pair' : hand.endsWith('s') ? 'suited' : 'offsuit'
   const r1 = hand[0]
   const r2 = hand[1]
-  if (kind === 'pair') return [{ r: r1, s: 's' }, { r: r1, s: 'h' }]
-  if (kind === 'suited') return [{ r: r1, s: 'h' }, { r: r2, s: 'h' }]
-  return [{ r: r1, s: 's' }, { r: r2, s: 'h' }]
+  const h = suitHash(hand)
+  const s1 = SUIT_LETTERS[h % 4]
+  if (kind === 'suited') return [{ r: r1, s: s1 }, { r: r2, s: s1 }]
+  // Pair et offsuit : deux couleurs distinctes (une paire a toujours 2 couleurs différentes).
+  const s2 = SUIT_LETTERS[(SUIT_LETTERS.indexOf(s1) + 1 + (h >> 2) % 3) % 4]
+  return [{ r: r1, s: s1 }, { r: kind === 'pair' ? r1 : r2, s: s2 }]
 }
 
 // Note la réponse : 'excellent' | 'bon' | 'faux'.
@@ -377,8 +391,10 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
   const heroBehind = hasStacks ? bb - heroBet : null
   const pot = villainBet + heroBet
 
-  const villainLabel = isReaction ? 'SB' : 'BB'
-  const heroLabel = isReaction ? 'BB (vous)' : `${POS_LABEL_3MAX[meta?.position] || 'SB'} (vous)`
+  // Les noms de sièges restent génériques (Vilain 1/2, Héros) : le bouton
+  // dealer sur la table suffit à situer les positions, cf. retour utilisateur.
+  const villainLabel = 'Vilain 1'
+  const heroLabel = 'Héros'
 
   // Table à 3 sièges (BTN/SB/BB) : pour les ranges d'open (BTN/SB) ET pour les
   // réactions de la BB en 3-max (BB vs SB, BB vs BTN) — dans ce dernier cas
@@ -398,7 +414,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
     seats = [
       {
         key: 'topLeft',
-        label: POS_LABEL_3MAX[foldedPos],
+        label: 'Vilain 1',
         stack: foldedBehind,
         bet: BLIND_3MAX[foldedPos],
         isHero: false,
@@ -407,7 +423,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
       },
       {
         key: 'topRight',
-        label: POS_LABEL_3MAX[villain3MaxPos],
+        label: 'Vilain 2',
         stack: villain3MaxBehind,
         bet: villainBetNow,
         isHero: false,
@@ -416,7 +432,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
       },
       {
         key: 'bottom',
-        label: 'BB (vous)',
+        label: 'Héros',
         stack: heroBehind,
         bet: heroBet,
         isHero: true,
@@ -432,7 +448,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
     seats = [
       {
         key: 'topLeft',
-        label: POS_LABEL_3MAX[leftPos],
+        label: 'Vilain 1',
         stack: behind(leftPos),
         bet: BLIND_3MAX[leftPos],
         isHero: false,
@@ -440,7 +456,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
       },
       {
         key: 'topRight',
-        label: POS_LABEL_3MAX[rightPos],
+        label: 'Vilain 2',
         stack: behind(rightPos),
         bet: BLIND_3MAX[rightPos],
         isHero: false,
@@ -448,7 +464,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
       },
       {
         key: 'bottom',
-        label: POS_LABEL_3MAX[heroPos3] + ' (vous)',
+        label: 'Héros',
         stack: behind(heroPos3),
         bet: BLIND_3MAX[heroPos3],
         isHero: true,
@@ -534,7 +550,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
                     <div className="player">
                       <div className="hero-cards">
                         {cards.map((c, i) => (
-                          <span key={i} className={'card' + (RED[c.s] ? ' red' : '')}>
+                          <span key={i} className={'card ' + SUIT_CLASS[c.s]}>
                             <span className="card-rank">{c.r}</span>
                             <span className="card-suit">{SUIT[c.s]}</span>
                           </span>

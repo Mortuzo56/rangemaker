@@ -7,14 +7,15 @@
 const STREET_ORDER = ['preflop', 'flop', 'turn', 'river']
 
 const SUIT_SYMBOL = { s: '♠', h: '♥', d: '♦', c: '♣' }
-const RED_SUITS = new Set(['h', 'd'])
+// Deck 4 couleurs : coeur rouge, carreau bleu, trèfle vert, pique noir.
+const SUIT_COLOR_CLASS = { s: 'suit-s', h: 'suit-h', d: 'suit-d', c: 'suit-c' }
 
-/** Découpe "As" -> { rank: 'A', suit: 's', symbol: '♠', red: false }. */
+/** Découpe "As" -> { rank: 'A', suit: 's', symbol: '♠', colorClass: 'suit-s' }. */
 export function parseCard(code) {
   if (!code || code.length < 2) return null
   const rank = code[0]
   const suit = code[1]
-  return { rank, suit, symbol: SUIT_SYMBOL[suit] || suit, red: RED_SUITS.has(suit) }
+  return { rank, suit, symbol: SUIT_SYMBOL[suit] || suit, colorClass: SUIT_COLOR_CLASS[suit] || '' }
 }
 
 /**

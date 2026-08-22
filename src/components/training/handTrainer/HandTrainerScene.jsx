@@ -11,7 +11,7 @@ function CardFace({ card, small }) {
   const c = parseCard(card)
   if (!c) return null
   return (
-    <span className={'card' + (c.red ? ' red' : '') + (small ? ' ht-board-card' : '')}>
+    <span className={'card ' + c.colorClass + (small ? ' ht-board-card' : '')}>
       <span className="card-rank">{c.rank}</span>
       <span className="card-suit">{c.symbol}</span>
     </span>
@@ -88,16 +88,19 @@ export default function HandTrainerScene({
   }
   const showChipFor = (pos) => revealed && pendingAction?.position === pos && pendingAction.movesChips
 
+  // Noms de sièges génériques (Vilain 1/2, Héros) : le bouton dealer sur la
+  // table suffit à situer les positions. `pos` (BTN/SB/BB) reste utilisé en
+  // interne pour le fold-tracking et l'appariement de l'action adverse.
   const { isHU, villainPositions } = tableSeatPositions(scenario, state.hero_position)
   const seats = isHU
     ? [
-        { key: 'top', pos: villainPositions[0] },
-        { key: 'bottom', pos: state.hero_position, isHero: true },
+        { key: 'top', pos: villainPositions[0], label: 'Vilain 1' },
+        { key: 'bottom', pos: state.hero_position, isHero: true, label: 'Héros' },
       ]
     : [
-        { key: 'topLeft', pos: villainPositions[0] },
-        { key: 'topRight', pos: villainPositions[1] },
-        { key: 'bottom', pos: state.hero_position, isHero: true },
+        { key: 'topLeft', pos: villainPositions[0], label: 'Vilain 1' },
+        { key: 'topRight', pos: villainPositions[1], label: 'Vilain 2' },
+        { key: 'bottom', pos: state.hero_position, isHero: true, label: 'Héros' },
       ]
 
   return (
@@ -139,13 +142,12 @@ export default function HandTrainerScene({
                   </div>
                   <div className="pinfo">
                     <div className="pname hero-name">
-                      {seat.pos}
+                      {seat.label}
                       {seat.pos === 'BTN' && (
                         <span className="dealer" title="Bouton">
                           D
                         </span>
-                      )}{' '}
-                      (vous)
+                      )}
                     </div>
                     <div className="pstack">{fmt(state.effective_stack_bb)} BB</div>
                   </div>
@@ -163,7 +165,7 @@ export default function HandTrainerScene({
                 </div>
                 <div className="pinfo">
                   <div className="pname">
-                    {seat.pos}
+                    {seat.label}
                     {seat.pos === 'BTN' && (
                       <span className="dealer" title="Bouton">
                         D
