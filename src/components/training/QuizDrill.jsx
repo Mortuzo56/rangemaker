@@ -3,6 +3,7 @@ import { getMeta, isReactionPosition } from '../../utils/meta.js'
 import { computeBorderHands } from '../../utils/borderHands.js'
 import { loadHistory, saveHistory, recordResult, pickDueHand } from '../../utils/history.js'
 import RangeMultiSelect from './RangeMultiSelect.jsx'
+import RangeRevealGrid from './RangeRevealGrid.jsx'
 
 // --- Helpers -------------------------------------------------------------
 
@@ -82,6 +83,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
   const [selectedIds, setSelectedIds] = useState(() => new Set(matrices.map((m) => m.id)))
   const [question, setQuestion] = useState(null) // { matrixId, hand }
   const [answered, setAnswered] = useState(null) // { chosenId, result }
+  const [showRange, setShowRange] = useState(false) // affiche la range complète après réponse
   const [stats, setStats] = useState({ excellent: 0, bon: 0, faux: 0 })
   // Phases : 0 = blindes postées, 1 = action SB révélée, 2 = à nous de jouer.
   const [phase, setPhase] = useState(0)
@@ -137,6 +139,7 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
   const selectNoneRanges = () => setSelectedIds(new Set())
 
   const nextQuestion = useCallback(() => {
+    setShowRange(false)
     const pool = usable.filter((m) => selectedIds.has(m.id))
     if (!pool.length) {
       setQuestion(null)
@@ -632,6 +635,16 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
                     </span>
                   ))}
                 </div>
+
+                {!showRange && (
+                  <button className="btn-mini train-reveal-btn" onClick={() => setShowRange(true)}>
+                    Voir la range complète
+                  </button>
+                )}
+                {showRange && matrix && (
+                  <RangeRevealGrid matrix={matrix} highlightHand={question.hand} onClose={() => setShowRange(false)} />
+                )}
+
                 {sessionDone ? (
                   <div className="train-session-end">
                     <div className="session-end-title">

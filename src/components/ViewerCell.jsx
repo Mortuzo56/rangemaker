@@ -6,7 +6,7 @@ import { handKind, cellTotal } from '../utils/hands.js'
  * Au clic : la case s'agrandit légèrement (via la classe "selected") et
  * affiche le détail des pourcentages de chaque action.
  */
-export default function ViewerCell({ row, col, name, entries, actionsById, actionOrder, selected, onSelect }) {
+export default function ViewerCell({ row, col, name, entries, actionsById, actionOrder, selected, onSelect, highlighted }) {
   const kind = handKind(row, col)
   const ordered = [...entries].sort(
     (a, b) => (actionOrder[a.actionId] ?? 99) - (actionOrder[b.actionId] ?? 99),
@@ -15,7 +15,7 @@ export default function ViewerCell({ row, col, name, entries, actionsById, actio
 
   return (
     <div
-      className={'vcell cell-' + kind + (selected ? ' vcell-selected' : '')}
+      className={'vcell cell-' + kind + (selected ? ' vcell-selected' : '') + (highlighted ? ' vcell-highlight' : '')}
       onClick={() => onSelect(selected ? null : name)}
       title={name}
     >
