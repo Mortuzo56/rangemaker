@@ -66,6 +66,27 @@ function grade(matrix, hand, chosenId) {
   return 'faux'
 }
 
+// Sac à mélanger (shuffle bag) : construit une pioche mélangée de toutes les
+// mains disponibles dans le pool (mains mixtes en double, pour approximer le
+// biais historique ~60% mixte / 40% pur) puis on tire sans remise. Évite les
+// répétitions rapprochées propres au tirage uniforme indépendant.
+function buildBag(pool) {
+  const items = []
+  pool.forEach((m) => {
+    const filled = Object.keys(m.cells).filter((n) => (m.cells[n] || []).length > 0)
+    const mixedSet = new Set(filled.filter((n) => m.cells[n].length > 1))
+    filled.forEach((hand) => {
+      items.push({ matrixId: m.id, hand })
+      if (mixedSet.has(hand)) items.push({ matrixId: m.id, hand })
+    })
+  })
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[items[i], items[j]] = [items[j], items[i]]
+  }
+  return items
+}
+
 const LABELS = {
   excellent: { text: 'Excellent !', cls: 'res-excellent' },
   bon: { text: 'Bon', cls: 'res-bon' },
@@ -127,6 +148,8 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
   }, [])
 
   const borderCache = useRef(new Map()) // matrixId -> Set des mains-frontière
+  const bagRef = useRef({ key: '', items: [] }) // shuffle bag pour 'classic'/'speed'
+  const lastQuestionRef = useRef(null) // évite de reposer la même question consécutivement
 
   const usable = useMemo(
     () => matrices.filter((m) => Object.values(m.cells).some((c) => (c || []).length > 0)),
@@ -201,13 +224,21 @@ export default function QuizDrill({ matrices, mode = 'classic' }) {
       return
     }
 
-    // 'classic' et 'speed' : sélection aléatoire (comportement historique).
-    const matrix = pool[Math.floor(Math.random() * pool.length)]
-    const filled = Object.keys(matrix.cells).filter((n) => (matrix.cells[n] || []).length > 0)
-    const mixed = filled.filter((n) => matrix.cells[n].length > 1)
-    const src = mixed.length && Math.random() < 0.6 ? mixed : filled
-    const hand = src[Math.floor(Math.random() * src.length)]
-    setQuestion({ matrixId: matrix.id, hand })
+    // 'classic' et 'speed' : pioche sans remise dans un sac mélangé (couvre
+    // tout le pool avant toute répétition, garde anti-répétition immédiate).
+    const poolKey = pool.map((m) => m.id).sort().join(',')
+    if (bagRef.current.key !== poolKey || !bagRef.current.items.length) {
+      bagRef.current = { key: poolKey, items: buildBag(pool) }
+    }
+    let picked = bagRef.current.items.pop()
+    const last = lastQuestionRef.current
+    if (last && picked.matrixId === last.matrixId && picked.hand === last.hand && bagRef.current.items.length) {
+      const alt = bagRef.current.items.pop()
+      bagRef.current.items.unshift(picked)
+      picked = alt
+    }
+    lastQuestionRef.current = picked
+    setQuestion({ matrixId: picked.matrixId, hand: picked.hand })
     setAnswered(null)
   }, [selectedIds, usable, mode])
 

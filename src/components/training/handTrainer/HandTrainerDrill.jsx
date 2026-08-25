@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import RAW_PACK from '../../../data/handTrainer/poker_training_scenarios_v1.json'
 import { loadScenarioPack, scenarioFacets, buildSessionQueue, applyChoice, scoreOf, parseActionText } from '../../../utils/handTrainerEngine.js'
 import { loadAttempts, recordAttempt, loadReviewList, saveReviewList, getWeakestTags } from '../../../utils/handTrainerHistory.js'
@@ -7,8 +7,26 @@ import HandTrainerScene from './HandTrainerScene.jsx'
 import HandTrainerDebrief from './HandTrainerDebrief.jsx'
 import HandTrainerSummary from './HandTrainerSummary.jsx'
 
-const SCENARIOS = loadScenarioPack(RAW_PACK)
-const FACETS_BY_ID = new Map(SCENARIOS.map((s) => [s.id, scenarioFacets(s)]))
+const BASE_SCENARIOS = loadScenarioPack(RAW_PACK)
+
+// Le pack de 1000 scénarios préflop pèse ~11 Mo : servi depuis public/ et
+// chargé à la demande (fetch), plutôt que bundlé dans le JS de l'appli, pour
+// ne pas alourdir le chargement initial de tous les utilisateurs. Mis en
+// cache dans cette promesse module-scope pour n'être fetché qu'une fois par
+// session, même si le composant est démonté/remonté.
+let extraPackPromise = null
+function loadExtraScenarios() {
+  if (!extraPackPromise) {
+    extraPackPromise = fetch(`${import.meta.env.BASE_URL}poker_training_scenarios_1000_preflop_v2.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((raw) => (raw ? loadScenarioPack(raw) : []))
+      .catch((err) => {
+        console.error('[handTrainer] échec du chargement du pack de 1000 scénarios :', err)
+        return []
+      })
+  }
+  return extraPackPromise
+}
 
 const STREET_LABELS = { preflop: 'Préflop', flop: 'Flop', turn: 'Turn', river: 'River' }
 const STREET_ID_ORDER = ['preflop', 'flop', 'turn', 'river']
@@ -19,27 +37,66 @@ function facetOptions(values, { order, labelFor } = {}) {
   return list.map((id) => ({ id, name: labelFor ? labelFor(id) : id }))
 }
 
-const PLAYERS_OPTIONS = facetOptions(
-  SCENARIOS.map((s) => FACETS_BY_ID.get(s.id).players),
-  { labelFor: (id) => (id === 'hu' ? 'Heads-Up' : '3-max') },
-)
-const POSITION_OPTIONS = facetOptions(SCENARIOS.map((s) => FACETS_BY_ID.get(s.id).position))
-const STREET_OPTIONS = facetOptions(
-  SCENARIOS.map((s) => FACETS_BY_ID.get(s.id).street),
-  { order: STREET_ID_ORDER, labelFor: (id) => STREET_LABELS[id] || id },
-)
-const DIFFICULTY_OPTIONS = facetOptions(SCENARIOS.map((s) => FACETS_BY_ID.get(s.id).difficulty))
-const TAG_OPTIONS = facetOptions(SCENARIOS.flatMap((s) => FACETS_BY_ID.get(s.id).tags))
-
 const LIMIT_PRESETS = [10, 20, 50]
 
 /**
- * Point d'entrée du mode "Situations complètes" : filtres de session, puis
- * enchaîne les mains (une décision Hero à la fois, aucun feedback avant la
- * fin), débrief après chaque main, résumé à la fin de la session.
+ * Point d'entrée du mode "Situations complètes" : charge le pack additionnel
+ * (async) avant de monter l'écran de filtres, pour que les options de filtre
+ * et la sélection "tout" par défaut couvrent d'emblée l'ensemble des
+ * scénarios disponibles.
  */
 export default function HandTrainerDrill() {
+  const [extraScenarios, setExtraScenarios] = useState(null) // null = en cours de chargement
+
+  useEffect(() => {
+    let alive = true
+    loadExtraScenarios().then((list) => {
+      if (alive) setExtraScenarios(list)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  if (extraScenarios === null) {
+    return <p className="hint">Chargement des scénarios…</p>
+  }
+
+  return <HandTrainerDrillReady scenarios={[...BASE_SCENARIOS, ...extraScenarios]} />
+}
+
+function HandTrainerDrillReady({ scenarios: SCENARIOS }) {
   const [phase, setPhase] = useState('setup') // 'setup' | 'playing' | 'hand-debrief' | 'session-summary'
+
+  const FACETS_BY_ID = useMemo(() => new Map(SCENARIOS.map((s) => [s.id, scenarioFacets(s)])), [SCENARIOS])
+  const PLAYERS_OPTIONS = useMemo(
+    () =>
+      facetOptions(
+        SCENARIOS.map((s) => FACETS_BY_ID.get(s.id).players),
+        { labelFor: (id) => (id === 'hu' ? 'Heads-Up' : '3-max') },
+      ),
+    [SCENARIOS, FACETS_BY_ID],
+  )
+  const POSITION_OPTIONS = useMemo(
+    () => facetOptions(SCENARIOS.map((s) => FACETS_BY_ID.get(s.id).position)),
+    [SCENARIOS, FACETS_BY_ID],
+  )
+  const STREET_OPTIONS = useMemo(
+    () =>
+      facetOptions(
+        SCENARIOS.map((s) => FACETS_BY_ID.get(s.id).street),
+        { order: STREET_ID_ORDER, labelFor: (id) => STREET_LABELS[id] || id },
+      ),
+    [SCENARIOS, FACETS_BY_ID],
+  )
+  const DIFFICULTY_OPTIONS = useMemo(
+    () => facetOptions(SCENARIOS.map((s) => FACETS_BY_ID.get(s.id).difficulty)),
+    [SCENARIOS, FACETS_BY_ID],
+  )
+  const TAG_OPTIONS = useMemo(
+    () => facetOptions(SCENARIOS.flatMap((s) => FACETS_BY_ID.get(s.id).tags)),
+    [SCENARIOS, FACETS_BY_ID],
+  )
 
   const [selectedPlayers, setSelectedPlayers] = useState(() => new Set(PLAYERS_OPTIONS.map((o) => o.id)))
   const [selectedPositions, setSelectedPositions] = useState(() => new Set(POSITION_OPTIONS.map((o) => o.id)))
